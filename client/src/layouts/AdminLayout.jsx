@@ -1,21 +1,19 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet } from "react-router-dom";
+
+import Sidebar from "../components/common/sidebar";
+
+import { adminLinks } from "../constants/sidebarLinks";
 
 function AdminLayout() {
   return (
     <div className="flex h-screen">
 
-      {/* Sidebar */}
-      <div className="w-64 bg-blue-500 text-white p-5">
-        <h2 className="text-2xl font-bold mb-10">
-          Admin Panel
-        </h2>
+      <Sidebar
+        title="Admin Panel"
+        links={adminLinks}
+        bgColor="bg-blue-500"
+      />
 
-        <nav className="flex flex-col gap-4">
-          <Link to="/admin/dashboard">Dashboard</Link>
-        </nav>
-      </div>
-
-      {/* Main Content */}
       <div className="flex-1 p-10 bg-gray-100">
         <Outlet />
       </div>
