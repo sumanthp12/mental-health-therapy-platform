@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 function Sidebar({ title, links, bgColor }) {
   return (
@@ -11,13 +11,19 @@ function Sidebar({ title, links, bgColor }) {
       <nav className="flex flex-col gap-4">
 
         {links.map((link) => (
-          <Link
-            key={link.path}
-            to={link.path}
-            className="hover:bg-white hover:text-black p-2 rounded transition"
-          >
+          <NavLink
+          key={link.path}
+          to={link.path}
+          className={({ isActive }) =>
+            `p-2 rounded transition ${
+              isActive
+                ? "bg-white text-black"
+                : "hover:bg-white hover:text-black"
+            }`
+          }
+        >
             {link.label}
-          </Link>
+          </NavLink>
         ))}
 
       </nav>

@@ -1,11 +1,14 @@
 import TopBar from "../../components/dashboard/TopBar";
 import WelcomeBanner from "../../components/dashboard/WelcomeBanner";
 import StatCard from "../../components/dashboard/StatCard";
+import Navbar from "../../components/dashboard/Navbar";
 
 function Dashboard() {
   return (
     <div>
 
+      <Navbar />
+      
       <TopBar title="Admin Dashboard" />
 
       <WelcomeBanner name="Admin" />
