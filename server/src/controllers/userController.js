@@ -1,19 +1,16 @@
 const User = require("../models/User");
+const bcrypt = require("bcryptjs");
 
 const registerUser = async (req, res) => {
   try {
 
     const { name, email, password, role } = req.body;
 
-    // Validation
-
     if (!name || !email || !password || !role) {
       return res.status(400).json({
         message: "All fields are required",
       });
     }
-
-    // Duplicate Check
 
     const existingUser = await User.findOne({ email });
 
@@ -23,10 +20,12 @@ const registerUser = async (req, res) => {
       });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = await User.create({
       name,
       email,
-      password,
+      password: hashedPassword,
       role,
     });
 
