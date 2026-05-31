@@ -9,6 +9,8 @@ import Register from "../pages/auth/Register";
 
 // Admin Pages
 import Dashboard from "../pages/admin/Dashboard";
+import Therapists from "../pages/admin/Therapists";
+import AdminClientsPage from "../pages/admin/Clients";
 
 // Client Pages
 import ClientDashboard from "../pages/client/Dashboard";
@@ -16,7 +18,7 @@ import MyTherapist from "../pages/client/MyTherapist";
 
 // Therapist Pages
 import TherapistDashboard from "../pages/therapist/Dashboard";
-import Clients from "../pages/therapist/Clients";
+import TherapistClientsPage from "../pages/therapist/Clients";
 
 // Layouts
 import AdminLayout from "../layouts/AdminLayout";
@@ -36,6 +38,8 @@ function AppRoutes() {
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="therapists" element={<Therapists />} />
+          <Route path="clients" element={<AdminClientsPage />} />
         </Route>
 
         {/* Client Routes */}
@@ -47,8 +51,9 @@ function AppRoutes() {
         {/* Therapist Routes */}
         <Route path="/therapist" element={<TherapistLayout />}>
           <Route path="dashboard" element={<TherapistDashboard />} />
-          <Route path="clients" element={<Clients />} />
+          <Route path="clients" element={<TherapistClientsPage />} />
         </Route>
+
 
       </Routes>
     </BrowserRouter>
