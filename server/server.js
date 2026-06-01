@@ -2,6 +2,7 @@ const connectDB = require("./src/config/database");
 const express = require("express");
 const cors = require("cors");
 const adminRoutes = require("./src/routes/adminRoutes");
+const therapistRoutes = require("./src/routes/therapistRoutes");
 
 const userRoutes = require("./src/routes/userRoutes");
 require("dotenv").config();
@@ -13,6 +14,7 @@ app.use(express.json());
 
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/therapists", therapistRoutes);
 
 app.get("/", (req, res) => {
   res.send("Mental Health Therapy API Running 🚀");
