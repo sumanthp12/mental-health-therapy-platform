@@ -58,6 +58,35 @@ const createTherapist = async (
 
 };
 
+const getAllTherapists = async (
+  req,
+  res
+) => {
+
+  try {
+
+    const therapists =
+      await Therapist.find()
+      .populate(
+        "user",
+        "name email role"
+      );
+
+    res.status(200).json(
+      therapists
+    );
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: error.message,
+    });
+
+  }
+
+};
+
 module.exports = {
   createTherapist,
+  getAllTherapists,
 };

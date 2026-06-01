@@ -10,8 +10,16 @@ require("../middleware/roleMiddleware");
 
 const {
   createTherapist,
+  getAllTherapists,
 } = require(
   "../controllers/therapistController"
+);
+
+router.get(
+  "/",
+  protect,
+  authorize("admin"),
+  getAllTherapists
 );
 
 router.post(
