@@ -1,0 +1,24 @@
+const express = require("express");
+
+const router = express.Router();
+
+const protect =
+require("../middleware/authMiddleware");
+
+const authorize =
+require("../middleware/roleMiddleware");
+
+const {
+  submitIntakeForm,
+} = require(
+  "../controllers/intakeController"
+);
+
+router.post(
+  "/",
+  protect,
+  authorize("client"),
+  submitIntakeForm
+);
+
+module.exports = router;
