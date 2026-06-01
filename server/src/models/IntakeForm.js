@@ -47,6 +47,17 @@ const intakeFormSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+
+    status: {
+        type: String,
+        enum: [
+            "pending",
+            "approved",
+            "assigned",
+            "completed",
+        ],
+        default: "pending",
+        },
   },
   {
     timestamps: true,
