@@ -7,11 +7,51 @@ const intakeRoutes = require("./src/routes/intakeRoutes");
 const assignmentRoutes = require("./src/routes/assignmentRoutes");
 const sessionRoutes = require("./src/routes/sessionRoutes");
 const chatRoutes = require("./src/routes/chatRoutes");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const userRoutes = require("./src/routes/userRoutes");
 require("dotenv").config();
 
 const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+});
+
+io.on("connection", (socket) => {
+
+  console.log(
+    `User Connected: ${socket.id}`
+  );
+
+  socket.on(
+    "send_message",
+    (data) => {
+
+      socket.broadcast.emit(
+        "receive_message",
+        data
+      );
+
+    }
+  );
+
+  socket.on(
+    "disconnect",
+    () => {
+
+      console.log(
+        `User Disconnected: ${socket.id}`
+      );
+
+    }
+  );
+
+});
 
 app.use(cors());
 app.use(express.json());
@@ -31,6 +71,8 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 8000;
 connectDB();
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost: ${PORT}`);
+server.listen(PORT, () => {
+  console.log(
+    `🚀 Server running on http://localhost:${PORT}`
+  );
 });

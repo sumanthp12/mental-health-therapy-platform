@@ -46,6 +46,7 @@ function AppRoutes() {
         <Route path="/client" element={<ClientLayout />}>
           <Route path="dashboard" element={<ClientDashboard />} />
           <Route path="my-therapist" element={<MyTherapist />} />
+          
         </Route>
 
         {/* Therapist Routes */}
@@ -53,6 +54,8 @@ function AppRoutes() {
           <Route path="dashboard" element={<TherapistDashboard />} />
           <Route path="clients" element={<TherapistClientsPage />} />
         </Route>
+
+        
 
 
       </Routes>
