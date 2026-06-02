@@ -4,6 +4,9 @@ require("../models/Therapist");
 const User =
 require("../models/User");
 
+const Assignment =
+require("../models/Assignment");
+
 const createTherapist = async (
   req,
   res
@@ -86,7 +89,55 @@ const getAllTherapists = async (
 
 };
 
+const getMyClients = async (
+  req,
+  res
+) => {
+
+  try {
+
+    const therapist =
+      await Therapist.findOne({
+        user: req.user.id,
+      });
+
+    if (!therapist) {
+      return res.status(404).json({
+        message:
+          "Therapist Profile Not Found",
+      });
+    }
+
+    const assignments =
+      await Assignment.find({
+        therapist:
+          therapist._id,
+      })
+      .populate(
+        "client",
+        "name email"
+      )
+      .populate(
+        "intakeForm"
+      );
+
+    res.status(200).json(
+      assignments
+    );
+
+  } catch (error) {
+
+    res.status(500).json({
+      message:
+        error.message,
+    });
+
+  }
+
+};
+
 module.exports = {
   createTherapist,
   getAllTherapists,
+  getMyClients,
 };
