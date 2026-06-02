@@ -9,6 +9,7 @@ const sessionRoutes = require("./src/routes/sessionRoutes");
 const chatRoutes = require("./src/routes/chatRoutes");
 const http = require("http");
 const { Server } = require("socket.io");
+const initializeSocket = require("./src/socket/chatSocket");
 
 const userRoutes = require("./src/routes/userRoutes");
 require("dotenv").config();
@@ -22,36 +23,7 @@ const io = new Server(server, {
   },
 });
 
-io.on("connection", (socket) => {
-
-  console.log(
-    `User Connected: ${socket.id}`
-  );
-
-  socket.on(
-    "send_message",
-    (data) => {
-
-      socket.broadcast.emit(
-        "receive_message",
-        data
-      );
-
-    }
-  );
-
-  socket.on(
-    "disconnect",
-    () => {
-
-      console.log(
-        `User Disconnected: ${socket.id}`
-      );
-
-    }
-  );
-
-});
+initializeSocket(io);
 
 app.use(cors());
 app.use(express.json());
