@@ -13,13 +13,32 @@ async (req, res) => {
       participantId,
     } = req.body;
 
-    const conversation =
-      await Conversation.create({
-        participants: [
-          req.user.id,
-          participantId,
-        ],
-      });
+    const existingConversation =
+        await Conversation.findOne({
+            participants: {
+            $all: [
+                req.user.id,
+                participantId,
+            ],
+            },
+        });
+
+        if (existingConversation) {
+        return res.status(200).json({
+            message:
+            "Conversation Already Exists",
+            conversation:
+            existingConversation,
+        });
+        }
+
+        const conversation =
+        await Conversation.create({
+            participants: [
+            req.user.id,
+            participantId,
+            ],
+        });
 
     res.status(201).json({
       message:
@@ -74,7 +93,70 @@ async (req, res) => {
 
 };
 
+const getConversations =
+async (req, res) => {
+
+  try {
+
+    const conversations =
+      await Conversation.find({
+        participants: req.user.id,
+      })
+      .populate(
+        "participants",
+        "name email role"
+      );
+
+    res.status(200).json(
+      conversations
+    );
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: error.message,
+    });
+
+  }
+
+};
+
+const getMessages =
+async (req, res) => {
+
+  try {
+
+    const messages =
+      await Message.find({
+        conversation:
+          req.params.conversationId,
+      })
+      .populate(
+        "sender",
+        "name role"
+      )
+      .sort({
+        createdAt: 1,
+      });
+
+    res.status(200).json(
+      messages
+    );
+
+  } catch (error) {
+
+    res.status(500).json({
+      message:
+        error.message,
+    });
+
+  }
+
+};
+
 module.exports = {
   createConversation,
   sendMessage,
+  getConversations,
+  getMessages,
 };
