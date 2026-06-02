@@ -7,6 +7,12 @@ require("../models/Assignment");
 const Therapist =
 require("../models/Therapist");
 
+const {
+  createNotification,
+} = require(
+  "../services/notificationService"
+);
+
 const bookSession = async (
   req,
   res
@@ -120,6 +126,22 @@ async (req, res) => {
       message:
         "Session Approved",
       session,
+    });
+
+    await createNotification({
+
+      recipient:
+        intake.client,
+
+      title:
+        "Session Scheduled",
+
+      message:
+        "Your therapy session has been scheduled.",
+
+      type:
+        "session",
+
     });
 
   } catch (error) {

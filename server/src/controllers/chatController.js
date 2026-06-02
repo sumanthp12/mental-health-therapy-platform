@@ -4,6 +4,12 @@ require("../models/Conversation");
 const Message =
 require("../models/Message");
 
+const {
+  createNotification,
+} = require(
+  "../services/notificationService"
+);
+
 const createConversation =
 async (req, res) => {
 
@@ -81,6 +87,22 @@ async (req, res) => {
         "Message Sent",
       newMessage,
     });
+
+    // await createNotification({
+
+    //   recipient:
+    //     receiverId,
+
+    //   title:
+    //     "New Message",
+
+    //   message:
+    //     "You received a new message.",
+
+    //   type:
+    //     "message",
+
+    // });
 
   } catch (error) {
 

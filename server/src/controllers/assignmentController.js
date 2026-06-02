@@ -7,6 +7,12 @@ require("../models/IntakeForm");
 const Therapist =
 require("../models/Therapist");
 
+const {
+  createNotification,
+} = require(
+  "../services/notificationService"
+);
+
 const assignTherapist = async (
   req,
   res
@@ -63,6 +69,22 @@ const assignTherapist = async (
       assignment,
     });
 
+    await createNotification({
+
+  recipient:
+    intake.client,
+
+  title:
+    "Therapist Assigned",
+
+  message:
+    "A therapist has been assigned to your account.",
+
+  type:
+    "assignment",
+
+});
+
   } catch (error) {
 
     res.status(500).json({
@@ -73,6 +95,8 @@ const assignTherapist = async (
   }
 
 };
+
+
 
 module.exports = {
   assignTherapist,
