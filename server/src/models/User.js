@@ -23,6 +23,16 @@ const userSchema = new mongoose.Schema(
       enum: ["admin", "therapist", "client"],
       default: "client",
     },
+    
+    isOnline: {
+      type: Boolean,
+      default: false,
+    },
+
+    lastSeen: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

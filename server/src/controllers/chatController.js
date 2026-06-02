@@ -154,9 +154,71 @@ async (req, res) => {
 
 };
 
+const markMessagesAsRead =
+    async (req, res) => {
+
+    try {
+
+        await Message.updateMany(
+        {
+            conversation:
+            req.params.conversationId,
+
+            read: false,
+        },
+        {
+            read: true,
+        }
+        );
+
+        res.status(200).json({
+        message:
+            "Messages Marked Read",
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+        message:
+            error.message,
+        });
+
+    }
+
+    };
+
+const getUnreadCount =
+async (req, res) => {
+
+  try {
+
+    const count =
+      await Message.countDocuments(
+        {
+          read: false,
+        }
+      );
+
+    res.status(200).json({
+      count,
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      message:
+        error.message,
+    });
+
+  }
+
+};
+
 module.exports = {
   createConversation,
   sendMessage,
   getConversations,
   getMessages,
+  markMessagesAsRead,
+  getUnreadCount,
 };

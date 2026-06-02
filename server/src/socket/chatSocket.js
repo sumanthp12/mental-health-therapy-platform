@@ -1,5 +1,5 @@
-const Message =
-require("../models/Message");
+const Message = require("../models/Message");
+const User = require("../models/User");
 
 const initializeSocket = (io) => {
 
@@ -84,15 +84,93 @@ const initializeSocket = (io) => {
     );
 
     socket.on(
-      "disconnect",
-      () => {
+        "disconnect",
+        async () => {
 
-        console.log(
-          `Disconnected: ${socket.id}`
+            if (socket.userId) {
+
+            await User.findByIdAndUpdate(
+                socket.userId,
+                {
+                isOnline: false,
+                lastSeen:
+                    new Date(),
+                }
+            );
+
+            io.emit(
+                "user_status_changed",
+                {
+                userId:
+                    socket.userId,
+
+                isOnline:
+                    false,
+                }
+            );
+
+            }
+
+            console.log(
+            `Disconnected:
+            ${socket.id}`
+            );
+
+        }
         );
 
-      }
-    );
+    socket.on(
+        "user_online",
+        async (userId) => {
+
+            socket.userId =
+                userId;
+
+            await User.findByIdAndUpdate(
+            userId,
+            {
+                isOnline: true,
+            }
+            );
+
+            io.emit(
+            "user_status_changed",
+            {
+                userId,
+                isOnline: true,
+            }
+            );
+
+        }
+        );
+
+        socket.on(
+            "typing",
+            (data) => {
+
+                socket.to(
+                data.conversationId
+                ).emit(
+                "user_typing",
+                data
+                );
+
+            }
+            );
+
+        socket.on(
+            "stop_typing",
+            (data) => {
+
+                socket.to(
+                data.conversationId
+                ).emit(
+                "user_stop_typing",
+                data
+                );
+
+            }
+            );
 
   });
 

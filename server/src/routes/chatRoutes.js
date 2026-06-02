@@ -12,6 +12,8 @@ const {
   sendMessage,
   getConversations,
   getMessages,
+    markMessagesAsRead,
+    getUnreadCount,
 } = require(
   "../controllers/chatController"
 );
@@ -38,6 +40,18 @@ router.get(
   "/messages/:conversationId",
   protect,
   getMessages
+);
+
+router.patch(
+  "/read/:conversationId",
+  protect,
+  markMessagesAsRead
+);
+
+router.get(
+  "/unread-count",
+  protect,
+  getUnreadCount
 );
 
 module.exports =
