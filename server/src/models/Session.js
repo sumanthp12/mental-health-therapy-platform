@@ -47,6 +47,15 @@ const sessionSchema =
         type: String,
         default: null,
       },
+
+      paymentStatus: {
+        type: String,
+        enum: [
+          "pending",
+          "paid",
+        ],
+        default: "pending",
+      },
     },
     {
       timestamps: true,

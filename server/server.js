@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const connectDB = require("./src/config/database");
 const express = require("express");
 const cors = require("cors");
@@ -12,9 +14,10 @@ const { Server } = require("socket.io");
 const { initSocket } = require("./src/socket/chatSocket");
 const notificationRoutes = require("./src/routes/notificationRoutes");
 const aiRoutes = require("./src/routes/aiRoutes");
+const paymentRoutes = require("./src/routes/paymentRoutes");
 
 const userRoutes = require("./src/routes/userRoutes");
-require("dotenv").config();
+
 
 const app = express();
 const server = http.createServer(app);
@@ -39,7 +42,7 @@ app.use("/api/sessions", sessionRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/ai", aiRoutes);
-
+app.use("/api/payments", paymentRoutes);
 
 
 app.get("/", (req, res) => {
