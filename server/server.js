@@ -11,7 +11,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const { initSocket } = require("./src/socket/chatSocket");
 const notificationRoutes = require("./src/routes/notificationRoutes");
-
+const aiRoutes = require("./src/routes/aiRoutes");
 
 const userRoutes = require("./src/routes/userRoutes");
 require("dotenv").config();
@@ -38,6 +38,8 @@ app.use("/api/assignments", assignmentRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/ai", aiRoutes);
+
 
 
 app.get("/", (req, res) => {
