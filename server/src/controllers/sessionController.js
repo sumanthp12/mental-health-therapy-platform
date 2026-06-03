@@ -120,6 +120,9 @@ async (req, res) => {
     session.status =
       "approved";
 
+    session.meetingRoom =
+      `mental-health-${session._id}`;
+
     await session.save();
 
     res.status(200).json({
@@ -155,8 +158,48 @@ async (req, res) => {
 
 };
 
+const joinMeeting =
+async (req, res) => {
+
+  try {
+
+    const session =
+      await Session.findById(
+        req.params.id
+      );
+
+    if (!session) {
+
+      return res.status(404).json({
+        message:
+          "Session not found",
+      });
+
+    }
+
+    res.status(200).json({
+
+      meetingUrl:
+        `https://meet.jit.si/${session.meetingRoom}`,
+
+    });
+
+  }
+
+  catch (error) {
+
+    res.status(500).json({
+      message:
+        error.message,
+    });
+
+  }
+
+};
+
 module.exports = {
   bookSession,
   getTherapistSessions,
   approveSession,
+  joinMeeting,
 };

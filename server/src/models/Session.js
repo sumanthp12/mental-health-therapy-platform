@@ -42,6 +42,11 @@ const sessionSchema =
         type: String,
         default: "",
       },
+
+      meetingRoom: {
+        type: String,
+        default: null,
+      },
     },
     {
       timestamps: true,

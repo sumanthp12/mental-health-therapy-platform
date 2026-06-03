@@ -14,6 +14,7 @@ const {
   bookSession,
   getTherapistSessions,
   approveSession,
+  joinMeeting,
 } = require(
   "../controllers/sessionController"
 );
@@ -37,6 +38,12 @@ router.patch(
   protect,
   authorize("therapist"),
   approveSession
+);
+
+router.get(
+  "/:id/join",
+  protect,
+  joinMeeting
 );
 
 module.exports =
