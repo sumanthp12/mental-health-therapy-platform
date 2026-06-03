@@ -3,6 +3,12 @@ require(
   "../models/Notification"
 );
 
+const {
+  sendNotificationToUser,
+} = require(
+  "../socket/chatSocket"
+);
+
 const createNotification =
 async ({
   recipient,
@@ -11,13 +17,20 @@ async ({
   type,
 }) => {
 
-  return await
-  Notification.create({
+  const notification =
+    await Notification.create({
+      recipient,
+      title,
+      message,
+      type,
+    });
+
+  sendNotificationToUser(
     recipient,
-    title,
-    message,
-    type,
-  });
+    notification
+  );
+
+  return notification;
 
 };
 

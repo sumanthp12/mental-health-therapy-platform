@@ -206,8 +206,28 @@ const getIO = () => io;
 const getOnlineUsers =
   () => onlineUsers;
 
+const sendNotificationToUser =
+  (userId, notification) => {
+
+    const socketId =
+      onlineUsers.get(
+        userId.toString()
+      );
+
+    if (socketId) {
+
+      io.to(socketId).emit(
+        "new_notification",
+        notification
+      );
+
+    }
+
+  };
+
 module.exports = {
   initSocket,
   getIO,
   getOnlineUsers,
+  sendNotificationToUser,
 };
