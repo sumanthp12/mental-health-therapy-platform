@@ -88,21 +88,30 @@ async (req, res) => {
       newMessage,
     });
 
-    // await createNotification({
+    const conversation =
+      await Conversation.findById(
+        conversationId
+      );
 
-    //   recipient:
-    //     receiverId,
+    const receiverId =
+      conversation.participants.find(
+        (participant) =>
+          participant.toString() !==
+          req.user.id
+      );
 
-    //   title:
-    //     "New Message",
+    await createNotification({
 
-    //   message:
-    //     "You received a new message.",
+      recipient: receiverId,
 
-    //   type:
-    //     "message",
+      title: "New Message",
 
-    // });
+      message:
+        "You received a new message.",
+
+      type: "message",
+
+    });
 
   } catch (error) {
 

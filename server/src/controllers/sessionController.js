@@ -131,7 +131,7 @@ async (req, res) => {
     await createNotification({
 
       recipient:
-        intake.client,
+        session.client,
 
       title:
         "Session Scheduled",
