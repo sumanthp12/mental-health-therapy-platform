@@ -12,6 +12,7 @@ const { Server } = require("socket.io");
 const initializeSocket = require("./src/socket/chatSocket");
 const notificationRoutes = require("./src/routes/notificationRoutes");
 
+
 const userRoutes = require("./src/routes/userRoutes");
 require("dotenv").config();
 
@@ -37,6 +38,7 @@ app.use("/api/assignments", assignmentRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/notifications", notificationRoutes);
+
 
 app.get("/", (req, res) => {
   res.send("Mental Health Therapy API Running 🚀");

@@ -8,15 +8,14 @@ const protect =
 const authorize =
   require("../middleware/roleMiddleware");
 
-const {
-  getAdminDashboard,
-} = require("../controllers/adminController");
+const { getAdminDashboard, getDashboardStats } = require("../controllers/adminController");
+
 
 router.get(
   "/dashboard",
   protect,
   authorize("admin"),
-  getAdminDashboard
+  getDashboardStats
 );
 
 module.exports = router;
