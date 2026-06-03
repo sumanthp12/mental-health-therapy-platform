@@ -9,7 +9,7 @@ const sessionRoutes = require("./src/routes/sessionRoutes");
 const chatRoutes = require("./src/routes/chatRoutes");
 const http = require("http");
 const { Server } = require("socket.io");
-const initializeSocket = require("./src/socket/chatSocket");
+const { initSocket } = require("./src/socket/chatSocket");
 const notificationRoutes = require("./src/routes/notificationRoutes");
 
 
@@ -25,7 +25,7 @@ const io = new Server(server, {
   },
 });
 
-initializeSocket(io);
+initSocket(io);
 
 app.use(cors());
 app.use(express.json());

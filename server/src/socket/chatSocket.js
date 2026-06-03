@@ -1,15 +1,19 @@
 const Message = require("../models/Message");
 const User = require("../models/User");
 
-const initializeSocket = (io) => {
+const onlineUsers = new Map();
+
+let io;
+
+const initSocket = (socketIO) => {
+
+  io = socketIO;
 
   io.on("connection", (socket) => {
 
     console.log(
       `User Connected: ${socket.id}`
     );
-
-    // Join conversation room
 
     socket.on(
       "join_conversation",
@@ -26,8 +30,6 @@ const initializeSocket = (io) => {
       }
     );
 
-    // Leave room
-
     socket.on(
       "leave_conversation",
       (conversationId) => {
@@ -39,8 +41,6 @@ const initializeSocket = (io) => {
       }
     );
 
-    // Send realtime message
-
     socket.on(
       "send_message",
       async (data) => {
@@ -51,10 +51,8 @@ const initializeSocket = (io) => {
             await Message.create({
               conversation:
                 data.conversationId,
-
               sender:
                 data.senderId,
-
               message:
                 data.message,
             });
@@ -84,97 +82,132 @@ const initializeSocket = (io) => {
     );
 
     socket.on(
-        "disconnect",
-        async () => {
+      "register-user",
+      (userId) => {
 
-            if (socket.userId) {
-
-            await User.findByIdAndUpdate(
-                socket.userId,
-                {
-                isOnline: false,
-                lastSeen:
-                    new Date(),
-                }
-            );
-
-            io.emit(
-                "user_status_changed",
-                {
-                userId:
-                    socket.userId,
-
-                isOnline:
-                    false,
-                }
-            );
-
-            }
-
-            console.log(
-            `Disconnected:
-            ${socket.id}`
-            );
-
-        }
+        onlineUsers.set(
+          userId,
+          socket.id
         );
+
+      }
+    );
 
     socket.on(
-        "user_online",
-        async (userId) => {
+      "user_online",
+      async (userId) => {
 
-            socket.userId =
-                userId;
+        socket.userId =
+          userId;
 
-            await User.findByIdAndUpdate(
-            userId,
-            {
-                isOnline: true,
-            }
-            );
-
-            io.emit(
-            "user_status_changed",
-            {
-                userId,
-                isOnline: true,
-            }
-            );
-
-        }
+        await User.findByIdAndUpdate(
+          userId,
+          {
+            isOnline: true,
+          }
         );
 
-        socket.on(
-            "typing",
-            (data) => {
+        io.emit(
+          "user_status_changed",
+          {
+            userId,
+            isOnline: true,
+          }
+        );
 
-                socket.to(
-                data.conversationId
-                ).emit(
-                "user_typing",
-                data
-                );
+      }
+    );
 
-            }
+    socket.on(
+      "typing",
+      (data) => {
+
+        socket.to(
+          data.conversationId
+        ).emit(
+          "user_typing",
+          data
+        );
+
+      }
+    );
+
+    socket.on(
+      "stop_typing",
+      (data) => {
+
+        socket.to(
+          data.conversationId
+        ).emit(
+          "user_stop_typing",
+          data
+        );
+
+      }
+    );
+
+    socket.on(
+      "disconnect",
+      async () => {
+
+        for (const [
+          userId,
+          socketId,
+        ] of onlineUsers.entries()) {
+
+          if (
+            socketId === socket.id
+          ) {
+
+            onlineUsers.delete(
+              userId
             );
 
-        socket.on(
-            "stop_typing",
-            (data) => {
+          }
 
-                socket.to(
-                data.conversationId
-                ).emit(
-                "user_stop_typing",
-                data
-                );
+        }
 
+        if (socket.userId) {
+
+          await User.findByIdAndUpdate(
+            socket.userId,
+            {
+              isOnline: false,
+              lastSeen:
+                new Date(),
             }
-            );
+          );
+
+          io.emit(
+            "user_status_changed",
+            {
+              userId:
+                socket.userId,
+              isOnline:
+                false,
+            }
+          );
+
+        }
+
+        console.log(
+          `Disconnected: ${socket.id}`
+        );
+
+      }
+    );
 
   });
 
 };
 
-module.exports =
-initializeSocket;
+const getIO = () => io;
+
+const getOnlineUsers =
+  () => onlineUsers;
+
+module.exports = {
+  initSocket,
+  getIO,
+  getOnlineUsers,
+};

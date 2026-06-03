@@ -10,6 +10,13 @@ const {
   "../services/notificationService"
 );
 
+const {
+  getIO,
+  getOnlineUsers,
+} = require(
+  "../socket/chatSocket"
+);
+
 const createConversation =
 async (req, res) => {
 
@@ -112,6 +119,38 @@ async (req, res) => {
       type: "message",
 
     });
+
+    const io = getIO();
+
+    const onlineUsers =
+      getOnlineUsers();
+
+    const receiverSocketId =
+      onlineUsers.get(
+        receiverId.toString()
+      );
+
+    if (receiverSocketId) {
+
+      io.to(
+        receiverSocketId
+      ).emit(
+        "new-notification",
+        {
+
+          title:
+            "New Message",
+
+          message:
+            "You received a new message.",
+
+          type:
+            "message",
+
+        }
+      );
+
+    }
 
   } catch (error) {
 
