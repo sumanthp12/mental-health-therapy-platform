@@ -3,11 +3,29 @@ import {
   LogOut,
 } from "lucide-react";
 
+import { useNavigate }
+from "react-router-dom";
+
 function Topbar({ role }) {
 
   const roleName =
     role.charAt(0).toUpperCase() +
     role.slice(1);
+
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+
+        localStorage.removeItem(
+            "token"
+        );
+
+        localStorage.removeItem(
+            "user"
+        );
+
+        navigate("/login");
+        };
 
   return (
     <header
@@ -118,13 +136,14 @@ function Topbar({ role }) {
         </div>
 
         <LogOut
-          className="
-          cursor-pointer
-          text-slate-600
-          hover:text-red-500
-          transition
-          "
-        />
+            onClick={handleLogout}
+            className="
+            cursor-pointer
+            text-slate-600
+            hover:text-red-500
+            transition
+            "
+            />
 
       </div>
 

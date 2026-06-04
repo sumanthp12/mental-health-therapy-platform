@@ -100,6 +100,34 @@ async (req, res) => {
 
 };
 
+const getClientSessions =
+async (req, res) => {
+
+  try {
+
+    const sessions =
+      await Session.find({
+        client: req.user.id,
+      })
+      .populate(
+        "therapist",
+        "fullName specialization"
+      );
+
+    res.status(200).json(
+      sessions
+    );
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: error.message,
+    });
+
+  }
+
+};
+
 const approveSession =
 async (req, res) => {
 
@@ -200,6 +228,7 @@ async (req, res) => {
 module.exports = {
   bookSession,
   getTherapistSessions,
+  getClientSessions,
   approveSession,
   joinMeeting,
 };

@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ProtectedRoute from "./ProtectedRoute";
 
 // Public Pages
 import LandingPage from "../pages/public/LandingPage";
@@ -8,19 +9,19 @@ import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 
 // Admin Pages
-import Dashboard from "../pages/admin/Dashboard";
-import Therapists from "../pages/admin/Therapists";
-import AdminClientsPage from "../pages/admin/Clients";
+import AdminDashboard from "../pages/admin/adminDashboard";
+import AdminTherapists from "../pages/admin/adminTherapists";
+import AdminClients from "../pages/admin/adminClients";
 
 // Client Pages
-import ClientDashboard from "../pages/client/Dashboard";
-import MyTherapist from "../pages/client/MyTherapist";
-import Sessions from "../pages/client/Sessions";
+import ClientDashboard from "../pages/client/clientDashboard";
+import ClientMyTherapist from "../pages/client/clientMyTherapist";
+import ClientSessions from "../pages/client/clientSessions";
 
 // Therapist Pages
-import TherapistDashboard from "../pages/therapist/Dashboard";
-import TherapistClientsPage from "../pages/therapist/Clients";
-import TherapistSessions from "../pages/therapist/Sessions";
+import TherapistDashboard from "../pages/therapist/therapistDashboard";
+import TherapistClients from "../pages/therapist/therapistClients";
+import TherapistSessions from "../pages/therapist/therapistSessions";
 
 // Layouts
 import AdminLayout from "../layouts/AdminLayout";
@@ -32,34 +33,31 @@ function AppRoutes() {
     <BrowserRouter>
       <Routes>
 
-        {/* Public Routes */}
+        {/* Public */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Admin Routes */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="therapists" element={<Therapists />} />
-          <Route path="clients" element={<AdminClientsPage />} />
+        {/* Admin */}
+        <Route path="/admin" element={<ProtectedRoute role="admin"> <AdminLayout /> </ProtectedRoute>}>
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="therapists" element={<AdminTherapists />} />
+          <Route path="clients" element={<AdminClients />} />
         </Route>
 
-        {/* Client Routes */}
-        <Route path="/client" element={<ClientLayout />}>
+        {/* Client */}
+        <Route path="/client" element={<ProtectedRoute role="client"> <ClientLayout /> </ProtectedRoute>}>
           <Route path="dashboard" element={<ClientDashboard />} />
-          <Route path="my-therapist" element={<MyTherapist />} />
-          <Route path="sessions" element={<Sessions />} />
+          <Route path="my-therapist" element={<ClientMyTherapist />} />
+          <Route path="sessions" element={<ClientSessions />} />
         </Route>
 
-        {/* Therapist Routes */}
-        <Route path="/therapist" element={<TherapistLayout />}>
+        {/* Therapist */}
+        <Route path="/therapist" element={<ProtectedRoute role="therapist"> <TherapistLayout /> </ProtectedRoute>}>
           <Route path="dashboard" element={<TherapistDashboard />} />
-          <Route path="clients" element={<TherapistClientsPage />} />
+          <Route path="clients" element={<TherapistClients />} />
           <Route path="sessions" element={<TherapistSessions />} />
         </Route>
-
-        
-
 
       </Routes>
     </BrowserRouter>

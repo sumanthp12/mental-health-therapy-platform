@@ -13,6 +13,7 @@ require("../middleware/roleMiddleware");
 const {
   bookSession,
   getTherapistSessions,
+  getClientSessions,
   approveSession,
   joinMeeting,
 } = require(
@@ -24,6 +25,13 @@ router.post(
   protect,
   authorize("client"),
   bookSession
+);
+
+router.get(
+  "/",
+  protect,
+  authorize("client"),
+  getClientSessions
 );
 
 router.get(
