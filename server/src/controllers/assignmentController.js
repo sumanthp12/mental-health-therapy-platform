@@ -98,15 +98,10 @@ const assignTherapist = async (
 
 const getClientTherapist = async (req, res) => {
   try {
-    console.log("=== CLIENT THERAPIST DEBUG ===");
-    console.log("req.user =", req.user);
-
     const assignment = await Assignment.findOne({
       client: req.user.id,
       status: "active",
     }).populate("therapist");
-
-    console.log("assignment =", assignment);
 
     res.json(assignment);
   } catch (error) {
