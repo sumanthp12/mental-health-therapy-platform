@@ -1,26 +1,61 @@
+import { useEffect, useState } from "react";
 import TopBar from "../../components/dashboard/TopBar";
 import DataTable from "../../components/dashboard/DataTable";
 
 function Clients() {
 
   const columns = [
-    "Name",
-    "Email",
-    "Status",
-  ];
+  "Name",
+  "Email",
+  "Status",
+];
 
-  const data = [
-    {
-      Name: "Rahul",
-      Email: "rahul@gmail.com",
+const [clients, setClients] = useState([]);
+
+
+const fetchClients = async () => {
+  try {
+
+    const token =
+      localStorage.getItem("token");
+
+    const response = await fetch(
+      "http://localhost:8000/api/users",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const users =
+      await response.json();
+
+    const clientUsers =
+      users.filter(
+        (user) => user.role === "client"
+      );
+
+    const formatted = clientUsers.map((user) => ({
+      Name: user.name,
+      Email: user.email,
       Status: "Active",
-    },
-    {
-      Name: "Priya",
-      Email: "priya@gmail.com",
-      Status: "Pending",
-    },
-  ];
+    }));
+
+    setClients(formatted);
+
+  } catch (error) {
+
+    console.error(error);
+
+  }
+};
+
+useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchClients();
+  }, []);
+
 
   return (
     <div>
@@ -30,7 +65,7 @@ function Clients() {
       <DataTable
         title="All Clients"
         columns={columns}
-        data={data}
+        data={clients}
       />
 
     </div>
