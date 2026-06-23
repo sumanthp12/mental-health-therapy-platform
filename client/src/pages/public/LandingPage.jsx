@@ -1,10 +1,20 @@
+import Navbar from "../../components/landing/Navbar";
+import Hero from "../../components/landing/Hero";
+import Features from "../../components/landing/Features";
+import HowItWorks from "../../components/landing/HowItWorks";
+import Therapists from "../../components/landing/Therapists";
+import Footer from "../../components/landing/Footer";
+
 function LandingPage() {
   return (
-    <div className="h-screen flex items-center justify-center">
-      <h1 className="text-5xl font-bold text-blue-500">
-        Landing Page
-      </h1>
-    </div>
+    <>
+      <Navbar />
+      <Hero />
+      <Features />
+      <HowItWorks />
+      <Therapists />
+      <Footer />
+    </>
   );
 }
 

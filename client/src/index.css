@@ -14,3 +14,7 @@ body {
   background: #cbd5e1;
   border-radius: 20px;
 }
+
+html {
+  scroll-behavior: smooth;
+}

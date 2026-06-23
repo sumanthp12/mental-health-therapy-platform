@@ -96,8 +96,86 @@ const assignTherapist = async (
 
 };
 
+const getClientTherapist = async (req, res) => {
+  try {
+    console.log("=== CLIENT THERAPIST DEBUG ===");
+    console.log("req.user =", req.user);
+
+    const assignment = await Assignment.findOne({
+      client: req.user.id,
+      status: "active",
+    }).populate("therapist");
+
+    console.log("assignment =", assignment);
+
+    res.json(assignment);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+const getTherapistClients =
+async (req, res) => {
+
+  try {
+
+    const assignments =
+      await Assignment.find({
+        therapist:
+          req.params.therapistId,
+      })
+      .populate(
+        "client",
+        "name email"
+      );
+
+    res.json(assignments);
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: error.message,
+    });
+
+  }
+
+};
+
+const getAllAssignments =
+async (req, res) => {
+
+  try {
+
+    const assignments =
+      await Assignment.find()
+      .populate(
+        "client",
+        "name email"
+      )
+      .populate(
+        "therapist"
+      );
+
+    res.json(assignments);
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: error.message,
+    });
+
+  }
+
+};
+
 
 
 module.exports = {
   assignTherapist,
+  getClientTherapist,
+  getTherapistClients,
+  getAllAssignments,
 };
