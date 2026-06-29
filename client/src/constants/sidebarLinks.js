@@ -12,6 +12,10 @@ export const adminLinks = [
     path: "/admin/clients",
   },
   {
+    label: "Intake Forms",
+    path: "/admin/intake-forms",
+  },
+  {
     label: "Sessions",
     path: "/admin/sessions",
   },

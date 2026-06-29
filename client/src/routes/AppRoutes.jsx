@@ -12,6 +12,7 @@ import Register from "../pages/auth/Register";
 import AdminDashboard from "../pages/admin/adminDashboard";
 import AdminTherapists from "../pages/admin/adminTherapists";
 import AdminClients from "../pages/admin/adminClients";
+import AdminIntakeForms from "../pages/admin/adminIntakeForms";
 
 // Client Pages
 import ClientDashboard from "../pages/client/clientDashboard";
@@ -43,6 +44,7 @@ function AppRoutes() {
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="therapists" element={<AdminTherapists />} />
           <Route path="clients" element={<AdminClients />} />
+          <Route path="/admin/intake-forms" element={<AdminIntakeForms />} />
         </Route>
 
         {/* Client */}

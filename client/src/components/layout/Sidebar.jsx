@@ -5,6 +5,7 @@ import {
   MessageCircle,
   CreditCard,
   Brain,
+  ClipboardList,
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
@@ -29,6 +30,11 @@ function Sidebar({ role }) {
         path: "/admin/clients",
         icon: Users,
       },
+      {
+      name: "Intake Forms",
+      path: "/admin/intake-forms",
+      icon: ClipboardList,
+    },
     ],
 
     client: [
