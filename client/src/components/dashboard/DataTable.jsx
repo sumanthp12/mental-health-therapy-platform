@@ -30,12 +30,12 @@ function DataTable({ title, columns, data }) {
             {data.map((row, index) => (
               <tr key={index}>
 
-                {Object.values(row).map((value, i) => (
+                {columns.map((column, i) => (
                   <td
                     key={i}
                     className="p-3 border"
                   >
-                    {value}
+                    {row[column]}
                   </td>
                 ))}
 
