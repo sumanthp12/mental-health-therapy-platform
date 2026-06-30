@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   Users,
   Calendar,
@@ -6,8 +7,47 @@ import {
   Clock,
   Activity,
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+
+
 
 function Dashboard() {
+
+    const { user, token } = useAuth();
+    const [assignedClients, setAssignedClients] = useState([]);
+
+   const fetchAssignedClients = async () => {
+  try {
+    const response = await fetch(
+      `http://localhost:8000/api/assignments/therapist/${user.id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setAssignedClients(data);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
+    
+useEffect(() => {
+  const loadClients = async () => {
+    if (user?.id) {
+      await fetchAssignedClients();
+    }
+  };
+
+  loadClients();
+}, [user]);
+
+
   return (
     <div className="space-y-6">
 
@@ -45,7 +85,7 @@ function Dashboard() {
         <div className="bg-white rounded-3xl p-6 shadow-sm">
           <Users className="text-blue-600 mb-3" />
           <p className="text-slate-500">Assigned Clients</p>
-          <h2 className="text-3xl font-bold">18</h2>
+          <h2 className="text-3xl font-bold">{assignedClients.length}</h2>
         </div>
 
         <div className="bg-white rounded-3xl p-6 shadow-sm">

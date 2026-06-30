@@ -49,6 +49,19 @@ const assignTherapist = async (
       });
     }
 
+    const existingAssignment =
+      await Assignment.findOne({
+          intakeForm: intake._id,
+          status: "active",
+      });
+
+      if (existingAssignment) {
+          return res.status(400).json({
+              message:
+                  "This intake form is already assigned.",
+          });
+      }
+
     const assignment =
       await Assignment.create({
         client: intake.client,
@@ -112,31 +125,32 @@ const getClientTherapist = async (req, res) => {
   }
 };
 
-const getTherapistClients =
-async (req, res) => {
-
+const getTherapistClients = async (req, res) => {
   try {
+    const therapist = await Therapist.findOne({
+      user: req.params.therapistId,
+    });
 
-    const assignments =
-      await Assignment.find({
-        therapist:
-          req.params.therapistId,
-      })
-      .populate(
-        "client",
-        "name email"
-      );
+    if (!therapist) {
+      return res.status(404).json({
+        message: "Therapist not found",
+      });
+    }
+
+    const assignments = await Assignment.find({
+      therapist: therapist._id,
+      status: "active",
+    })
+      .populate("client", "name email")
+      .populate("intakeForm");
 
     res.json(assignments);
-
   } catch (error) {
-
+    console.error(error);
     res.status(500).json({
       message: error.message,
     });
-
   }
-
 };
 
 const getAllAssignments =
