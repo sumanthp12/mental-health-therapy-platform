@@ -1,8 +1,188 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Search, Users } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+
 function Clients() {
+  const { user, token } = useAuth();
+  const navigate = useNavigate();
+
+  const [assignedClients, setAssignedClients] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const fetchAssignedClients = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/assignments/therapist/${user.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setAssignedClients(data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchAssignedClients();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const filteredClients = assignedClients.filter((assignment) =>
+    assignment.client?.name
+      ?.toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <h1 className="text-4xl font-bold">
-      Therapist Clients
-    </h1>
+    <div className="space-y-6">
+
+      {/* Header */}
+      <div className="bg-white rounded-2xl shadow-sm p-6">
+        <h1 className="text-3xl font-bold">Assigned Clients</h1>
+        <p className="text-gray-500 mt-2">
+          View and manage your assigned clients.
+        </p>
+      </div>
+
+      {/* Search */}
+      <div className="bg-white rounded-2xl shadow-sm p-5">
+        <div className="relative">
+          <Search
+            size={18}
+            className="absolute left-3 top-3.5 text-gray-400"
+          />
+
+          <input
+            type="text"
+            placeholder="Search client..."
+            className="w-full border rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* Clients Table */}
+
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+
+        <table className="w-full">
+
+          <thead className="bg-gray-100">
+
+            <tr>
+
+              <th className="text-left p-4">Client</th>
+
+              <th className="text-left p-4">Email</th>
+
+              <th className="text-left p-4">Concern</th>
+
+              <th className="text-left p-4">Status</th>
+
+              <th className="text-left p-4">Action</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            {filteredClients.length === 0 ? (
+
+              <tr>
+
+                <td
+                  colSpan="5"
+                  className="text-center py-10 text-gray-500"
+                >
+                  No clients assigned.
+                </td>
+
+              </tr>
+
+            ) : (
+
+              filteredClients.map((assignment) => (
+
+                <tr
+                  key={assignment._id}
+                  className="border-t hover:bg-gray-50"
+                >
+                  <td className="p-4 font-medium">
+                    {assignment.client?.name}
+                  </td>
+
+                  <td className="p-4">
+                    {assignment.client?.email}
+                  </td>
+
+                  <td className="p-4">
+                    {assignment.intakeForm?.concern}
+                  </td>
+
+                  <td className="p-4">
+                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                      {assignment.status}
+                    </span>
+                  </td>
+
+                  <td className="p-4">
+                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                    onClick={() =>
+                          navigate(
+                            `/therapist/clients/${assignment._id}`
+                          )
+                        }>
+                      View
+                    </button>
+                  </td>
+
+                </tr>
+
+              ))
+
+            )}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+      {/* Summary */}
+
+      <div className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-2xl p-6 flex items-center gap-4">
+
+        <Users size={40} />
+
+        <div>
+
+          <h2 className="text-xl font-semibold">
+            Total Assigned Clients
+          </h2>
+
+          <p className="text-3xl font-bold">
+            {assignedClients.length}
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
   );
 }
 

@@ -14,6 +14,7 @@ const {
   assignTherapist,
   getClientTherapist,
   getTherapistClients,
+  getAssignmentDetails,
   getAllAssignments,
 } = require(
   "../controllers/assignmentController"
@@ -36,6 +37,12 @@ router.get(
   "/therapist/:therapistId",
   protect,
   getTherapistClients
+);
+
+router.get(
+  "/:assignmentId",
+  protect,
+  getAssignmentDetails
 );
 
 router.get(

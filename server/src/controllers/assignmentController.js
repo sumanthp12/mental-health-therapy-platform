@@ -153,6 +153,29 @@ const getTherapistClients = async (req, res) => {
   }
 };
 
+const getAssignmentDetails = async (req, res) => {
+  try {
+    const assignment = await Assignment.findById(req.params.assignmentId)
+      .populate("client", "name email role isOnline lastSeen")
+      .populate("therapist")
+      .populate("intakeForm");
+
+    if (!assignment) {
+      return res.status(404).json({
+        message: "Assignment not found",
+      });
+    }
+
+    res.json(assignment);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
 const getAllAssignments =
 async (req, res) => {
 
@@ -186,5 +209,6 @@ module.exports = {
   assignTherapist,
   getClientTherapist,
   getTherapistClients,
+  getAssignmentDetails,
   getAllAssignments,
 };

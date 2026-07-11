@@ -23,6 +23,7 @@ import ClientSessions from "../pages/client/clientSessions";
 import TherapistDashboard from "../pages/therapist/therapistDashboard";
 import TherapistClients from "../pages/therapist/therapistClients";
 import TherapistSessions from "../pages/therapist/therapistSessions";
+import TherapistClientDetails from "../pages/therapist/therapistClientDetails";
 
 // Layouts
 import AdminLayout from "../layouts/AdminLayout";
@@ -59,6 +60,7 @@ function AppRoutes() {
           <Route path="dashboard" element={<TherapistDashboard />} />
           <Route path="clients" element={<TherapistClients />} />
           <Route path="sessions" element={<TherapistSessions />} />
+          <Route path="/therapist/clients/:assignmentId" element={<TherapistClientDetails />} />
         </Route>
 
       </Routes>
