@@ -1,17 +1,8 @@
-const Session =
-require("../models/Session");
+const Session = require("../models/Session");
 
-const Assignment =
-require("../models/Assignment");
+const Therapist = require("../models/Therapist");
 
-const Therapist =
-require("../models/Therapist");
-
-const {
-  createNotification,
-} = require(
-  "../services/notificationService"
-);
+const { createNotification,} = require("../services/notificationService");
 
 const bookSession = async (
   req,
@@ -70,19 +61,22 @@ async (req, res) => {
 
   try {
 
-    const therapist =
-      await Therapist.findOne({
-        user: req.user.id,
-      });
+    const therapist = await Therapist.findOne({
+      user: req.user.id,
+    });
 
-    const sessions =
-      await Session.find({
-        therapist:
-          therapist._id,
-      })
+    if (!therapist) {
+      return res.status(404).json({
+        message: "Therapist not found",
+      });
+    }
+
+    const sessions = await Session.find({
+      therapist: therapist._id,
+    })
       .populate(
         "client",
-        "name email"
+        "name email role isOnline lastSeen"
       );
 
     res.status(200).json(
@@ -186,6 +180,39 @@ async (req, res) => {
 
 };
 
+const completeSession = async (req, res) => {
+  try {
+    const session = await Session.findById(req.params.id);
+
+    if (!session) {
+      return res.status(404).json({
+        message: "Session not found",
+      });
+    }
+
+    session.status = "completed";
+
+    await session.save();
+
+    res.status(200).json({
+      message: "Session completed",
+      session,
+    });
+
+    await createNotification({
+      recipient: session.client,
+      title: "Session Completed",
+      message: "Your therapy session has been completed.",
+      type: "session",
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
 const joinMeeting =
 async (req, res) => {
 
@@ -230,5 +257,6 @@ module.exports = {
   getTherapistSessions,
   getClientSessions,
   approveSession,
+  completeSession,
   joinMeeting,
 };

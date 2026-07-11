@@ -15,6 +15,7 @@ const {
   getTherapistSessions,
   getClientSessions,
   approveSession,
+  completeSession,
   joinMeeting,
 } = require(
   "../controllers/sessionController"
@@ -46,6 +47,13 @@ router.patch(
   protect,
   authorize("therapist"),
   approveSession
+);
+
+router.patch(
+  "/:id/complete",
+  protect,
+  authorize("therapist"),
+  completeSession
 );
 
 router.get(

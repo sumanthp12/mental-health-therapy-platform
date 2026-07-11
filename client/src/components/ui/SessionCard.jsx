@@ -4,27 +4,27 @@ import {
   Video,
   Brain,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function SessionCard({
   therapist,
   sessionDate,
   sessionTime,
   status,
+  meetingRoom,
+  sessionId,
+  onApprove,
 }) {
 
-  const formattedDate =
-    sessionDate
-      ? new Date(
-          sessionDate
-        ).toLocaleDateString(
-          "en-IN",
-          {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-          }
-        )
-      : "Date Not Available";
+  const navigate = useNavigate();
+
+  const joinMeeting = () => {
+  navigate(`/meeting/${meetingRoom}`, {
+    state: {
+      sessionId,
+    },
+  });
+};
 
   return (
     <div
@@ -72,11 +72,7 @@ function SessionCard({
             text-lg
             "
           >
-            {
-            therapist?.name ||
-            therapist?.specialization ||
-            "Therapist"
-            }
+            {therapist || "Therapist"}
           </h3>
 
           <p
@@ -107,7 +103,7 @@ function SessionCard({
           />
 
           <span>
-            {formattedDate}
+            {sessionDate}
           </span>
         </div>
 
@@ -172,23 +168,29 @@ function SessionCard({
           {status}
         </span>
 
-        <button
-          className="
-          flex
-          items-center
-          gap-2
-          bg-gradient-to-r
-          from-blue-600
-          to-cyan-500
-          text-white
-          px-4
-          py-2
-          rounded-xl
-          "
-        >
-          <Video size={18} />
-          Join
-        </button>
+        {status === "pending" ? (
+          <button
+            onClick={() => onApprove(sessionId)}
+            className="bg-yellow-500 text-white px-4 py-2 rounded-xl"
+          >
+            Approve
+          </button>
+        ) : status === "approved" ? (
+          <button
+            onClick={joinMeeting}
+            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl"
+          >
+            <Video size={18} />
+            Join
+          </button>
+        ) : (
+          <button
+            disabled
+            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl cursor-not-allowed"
+          >
+            Completed
+          </button>
+        )}
       </div>
     </div>
   );

@@ -156,7 +156,7 @@ const getTherapistClients = async (req, res) => {
 const getAssignmentDetails = async (req, res) => {
   try {
     const assignment = await Assignment.findById(req.params.assignmentId)
-      .populate("client", "name email role isOnline lastSeen")
+      .populate("client")
       .populate("therapist")
       .populate("intakeForm");
 
