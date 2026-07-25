@@ -17,6 +17,7 @@ const aiRoutes = require("./src/routes/aiRoutes");
 const paymentRoutes = require("./src/routes/paymentRoutes");
 
 const userRoutes = require("./src/routes/userRoutes");
+const dashboardRoutes = require("./src/routes/dashboardRoutes");
 
 
 const app = express();
@@ -43,6 +44,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 
 app.get("/", (req, res) => {

@@ -166,6 +166,12 @@ async (req, res) => {
 const getConversations =
 async (req, res) => {
 
+
+  const conversations = await Conversation.find({
+    participants: req.user.id,
+  }).populate("participants", "name email role");
+
+
   try {
 
     const conversations =
@@ -176,19 +182,14 @@ async (req, res) => {
         "participants",
         "name email role"
       );
-
     res.status(200).json(
       conversations
     );
-
   } catch (error) {
-
     res.status(500).json({
       message: error.message,
     });
-
   }
-
 };
 
 const getMessages =

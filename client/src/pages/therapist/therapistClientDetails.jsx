@@ -236,26 +236,17 @@ function TherapistClientDetails() {
 
     </div>
 
-    <div className="bg-white rounded-xl shadow p-6">
-        <h2 className="text-xl font-semibold mb-5">Actions</h2>
+    <div className="bg-white rounded-2xl shadow-sm p-6">
+        <h2 className="text-2xl font-bold mb-6">Actions</h2>
 
-        <div className="flex flex-wrap gap-4">
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg">
-            Start Session
-            </button>
-
-            <button className="px-4 py-2 bg-green-600 text-white rounded-lg">
-            Schedule Session
-            </button>
-
-            <button className="px-4 py-2 bg-purple-600 text-white rounded-lg">
+        <button
+            onClick={() =>
+            navigate(`/therapist/messages?id=${assignment.client._id}`)
+            }
+            className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition"
+        >
             Send Message
-            </button>
-
-            <button className="px-4 py-2 bg-orange-600 text-white rounded-lg">
-            Progress Notes
-            </button>
-        </div>
+        </button>
         </div>
 
 </div>
