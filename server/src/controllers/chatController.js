@@ -17,24 +17,29 @@ const {
   "../socket/chatSocket"
 );
 
-const createConversation =
-async (req, res) => {
-
+const createConversation = async (req, res) => {
   try {
+    const { participantId } = req.body;
 
-    const {
-      participantId,
-    } = req.body;
+    if (!participantId) {
+      return res.status(400).json({
+        message: "Participant ID is required",
+      });
+    }
+
+    if (participantId === req.user.id) {
+      return res.status(400).json({
+        message: "You cannot create a conversation with yourself.",
+      });
+    }
 
     const existingConversation =
-        await Conversation.findOne({
-            participants: {
-            $all: [
-                req.user.id,
-                participantId,
-            ],
-            },
-        });
+      await Conversation.findOne({
+          participants: {
+              $all: [req.user.id, participantId],
+              $size: 2,
+          },
+      });
 
         if (existingConversation) {
         return res.status(200).json({

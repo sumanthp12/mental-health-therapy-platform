@@ -68,7 +68,6 @@ function TherapistClientDetails() {
         >
         ← Back to Clients
     </button>
-    {/* Header */}
 
     <div className="bg-white rounded-xl shadow p-6">
 

@@ -54,20 +54,16 @@ useEffect(() => {
 
       <div className="flex justify-between items-center">
 
-        <button
-            className="
-            bg-gradient-to-r
-            from-blue-600
-            to-cyan-500
-            text-white
-            px-6
-            py-3
-            rounded-2xl
-            shadow-lg
-            "
-        >
-            + Book Session
-        </button>
+        <div className="mb-6 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+          <h3 className="font-semibold text-blue-700">
+            Session Scheduling
+          </h3>
+
+          <p className="mt-1 text-sm text-slate-600">
+            Your therapist will schedule upcoming sessions. Once a session is created,
+            it will appear here and you'll be able to join it at the scheduled time.
+          </p>
+        </div>
 
         </div>
 

@@ -18,6 +18,8 @@ import AdminIntakeForms from "../pages/admin/adminIntakeForms";
 import ClientDashboard from "../pages/client/clientDashboard";
 import ClientMyTherapist from "../pages/client/clientMyTherapist";
 import ClientSessions from "../pages/client/clientSessions";
+import ClientMessages from "../pages/client/clientMessages";
+import ClientAISupport from "../pages/client/clientAISupport";
 
 // Therapist Pages
 import TherapistDashboard from "../pages/therapist/therapistDashboard";
@@ -55,6 +57,8 @@ function AppRoutes() {
           <Route path="dashboard" element={<ClientDashboard />} />
           <Route path="my-therapist" element={<ClientMyTherapist />} />
           <Route path="sessions" element={<ClientSessions />} />
+          <Route path="messages" element={<ClientMessages />} />
+          <Route path="ai-support" element={<ClientAISupport />} />
         </Route>
 
         {/* Therapist */}

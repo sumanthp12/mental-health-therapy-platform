@@ -15,180 +15,124 @@ function SessionCard({
   sessionId,
   onApprove,
 }) {
-
   const navigate = useNavigate();
 
   const joinMeeting = () => {
-  navigate(`/meeting/${meetingRoom}`, {
-    state: {
-      sessionId,
-    },
-  });
-};
+    navigate(`/meeting/${meetingRoom}`, {
+      state: {
+        sessionId,
+      },
+    });
+  };
+
+  const formatDate = (date) => {
+    if (!date) return "Date Not Available";
+
+    return new Date(date).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const statusClasses = {
+    pending: "bg-yellow-100 text-yellow-700",
+    approved: "bg-green-100 text-green-700",
+    completed: "bg-blue-100 text-blue-700",
+    cancelled: "bg-red-100 text-red-700",
+  };
 
   return (
-    <div
-      className="
-      bg-white
-      rounded-3xl
-      p-6
-      shadow-sm
-      border
-      border-slate-100
-      hover:shadow-lg
-      transition-all
-      duration-300
-      "
-    >
-      <div
-        className="
-        flex
-        items-center
-        gap-3
-        mb-4
-        "
-      >
-        <div
-          className="
-          h-12
-          w-12
-          rounded-2xl
-          bg-blue-100
-          flex
-          items-center
-          justify-center
-          "
-        >
-          <Brain
-            size={22}
-            className="text-blue-600"
-          />
+    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+      {/* Header */}
+
+      <div className="mb-6 flex items-center gap-4">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100">
+          <Brain className="text-blue-600" size={26} />
         </div>
 
         <div>
-          <h3
-            className="
-            font-bold
-            text-lg
-            "
-          >
-            {therapist || "Therapist"}
+          <h3 className="text-lg font-bold">
+            {typeof therapist === "string"
+              ? therapist
+              : therapist?.user?.name || "Therapist"}
           </h3>
 
-          <p
-            className="
-            text-sm
-            text-slate-500
-            "
-          >
-            Therapy Session
+          <p className="text-sm text-slate-500">
+            {typeof therapist === "object"
+              ? therapist?.specialization
+              : "Therapy Session"}
           </p>
         </div>
       </div>
 
-      <div
-        className="
-        space-y-3
-        "
-      >
-        <div
-          className="
-          flex
-          items-center
-          gap-2
-          "
-        >
-          <Calendar
-            size={18}
-          />
+      {/* Date */}
 
-          <span>
-            {sessionDate}
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <Calendar className="text-slate-500" size={18} />
+
+          <span className="font-medium">
+            {formatDate(sessionDate)}
           </span>
         </div>
 
-        <div
-          className="
-          flex
-          items-center
-          gap-2
-          "
-        >
-          <Clock
-            size={18}
-          />
+        <div className="flex items-center gap-3">
+          <Clock className="text-slate-500" size={18} />
 
-          <span>
-            {
-              sessionTime ||
-              "Time Not Available"
-            }
+          <span className="font-medium">
+            {sessionTime || "Time Not Available"}
           </span>
         </div>
       </div>
 
-      <div
-        className="
-        mt-6
-        flex
-        justify-between
-        items-center
-        "
-      >
+      {/* Footer */}
+
+      <div className="mt-8 flex items-center justify-between">
         <span
-          className={`
-          px-3
-          py-1
-          rounded-full
-          text-sm
-          font-medium
-
-          ${
-            status ===
-            "approved"
-              ? "bg-green-100 text-green-700"
-              : ""
-          }
-
-          ${
-            status ===
-            "pending"
-              ? "bg-yellow-100 text-yellow-700"
-              : ""
-          }
-
-          ${
-            status ===
-            "completed"
-              ? "bg-blue-100 text-blue-700"
-              : ""
-          }
-          `}
+          className={`rounded-full px-3 py-1 text-sm font-semibold capitalize ${
+            statusClasses[status] ||
+            "bg-slate-100 text-slate-700"
+          }`}
         >
           {status}
         </span>
 
-        {status === "pending" ? (
+        {status === "pending" && onApprove ? (
           <button
             onClick={() => onApprove(sessionId)}
-            className="bg-yellow-500 text-white px-4 py-2 rounded-xl"
+            className="rounded-xl bg-yellow-500 px-5 py-2 text-white transition hover:bg-yellow-600"
           >
             Approve
           </button>
-        ) : status === "approved" ? (
+        ) : status === "approved" && meetingRoom ? (
           <button
             onClick={joinMeeting}
-            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-4 py-2 rounded-xl"
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-2 text-white transition hover:opacity-90"
           >
             <Video size={18} />
-            Join
+            Join Session
+          </button>
+        ) : status === "completed" ? (
+          <button
+            disabled
+            className="cursor-not-allowed rounded-xl bg-slate-200 px-5 py-2 text-slate-600"
+          >
+            Completed
+          </button>
+        ) : status === "cancelled" ? (
+          <button
+            disabled
+            className="cursor-not-allowed rounded-xl bg-red-100 px-5 py-2 text-red-700"
+          >
+            Cancelled
           </button>
         ) : (
           <button
             disabled
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl cursor-not-allowed"
+            className="cursor-not-allowed rounded-xl bg-slate-200 px-5 py-2 text-slate-600"
           >
-            Completed
+            Waiting
           </button>
         )}
       </div>

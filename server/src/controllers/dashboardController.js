@@ -1,8 +1,10 @@
 const Assignment = require("../models/Assignment");
 const Session = require("../models/Session");
 const Therapist = require("../models/Therapist");
+const Conversation = require("../models/Conversation");
+const Message = require("../models/Message");
 
-exports.getTherapistDashboard = async (req, res) => {
+const getTherapistDashboard = async (req, res) => {
   try {
     const therapistProfile = await Therapist.findOne({
         user: req.user.id,
@@ -65,3 +67,63 @@ exports.getTherapistDashboard = async (req, res) => {
         });
     }
     };
+
+    const getClientDashboard = async (req, res) => {
+  try {
+    const clientId = req.user.id;
+
+    // Find client's assignment
+    const assignment = await Assignment.findOne({
+      client: clientId,
+    }).populate({
+      path: "therapist",
+      populate: {
+        path: "user",
+        select: "name email",
+      },
+    });
+
+    // Upcoming sessions
+    const upcomingSessions = await Session.find({
+      client: clientId,
+      status: { $in: ["scheduled", "approved"] },
+    }).sort({ sessionDate: 1 });
+
+    // Next session
+    const nextSession =
+      upcomingSessions.length > 0 ? upcomingSessions[0] : null;
+
+    // Recent messages
+    const conversations = await Conversation.find({
+      participants: clientId,
+    });
+
+    const conversationIds = conversations.map((c) => c._id);
+
+    const recentMessages = await Message.find({
+      conversation: { $in: conversationIds },
+    })
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    res.json({
+      assignedTherapist: assignment
+        ? assignment.therapist
+        : null,
+      upcomingSessions,
+      nextSession,
+      recentMessages,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Failed to load dashboard",
+    });
+  }
+};
+
+module.exports = {
+  getTherapistDashboard,
+  getClientDashboard,
+};

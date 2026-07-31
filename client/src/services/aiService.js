@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:8000/api/therapists",
+  baseURL: "http://localhost:8000/api/ai",
 });
 
 API.interceptors.request.use((config) => {
@@ -14,12 +14,10 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-export const getTherapists = async () => {
-  const { data } = await API.get("/");
-  return data;
-};
+export const chatWithAI = async (message) => {
+  const { data } = await API.post("/chat", {
+    message,
+  });
 
-export const getAssignedTherapist = async () => {
-  const { data } = await API.get("/assigned");
   return data;
 };

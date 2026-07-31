@@ -25,10 +25,17 @@ function TherapistMessages() {
         try {
             const data = await getConversations();
 
-            setConversations(data);
+            // Remove invalid conversations
+            const validConversations = data.filter(
+            (conversation) =>
+                conversation.participants &&
+                conversation.participants.length === 2
+            );
+
+            setConversations(validConversations);
 
             if (conversationId) {
-                const conversation = data.find(
+                const conversation = validConversations.find(
                     (item) => item._id === conversationId
                 );
 
@@ -126,17 +133,29 @@ function TherapistMessages() {
                 conversations={conversations}
                 selectedConversation={selectedConversation}
                 onSelect={setSelectedConversation}
-                currentUserId={loggedInUser?.id}
+                currentUserId={
+                    loggedInUser?._id ||
+                    loggedInUser?.id ||
+                    loggedInUser?.user?._id
+                    }
                 />
           </div>
           <div className="flex-1 flex flex-col min-h-0">
             <ChatHeader
             conversation={selectedConversation}
-            currentUserId={loggedInUser?.id}
+            currentUserId={
+                loggedInUser?._id ||
+                loggedInUser?.id ||
+                loggedInUser?.user?._id
+                }
             />
             <ChatMessages
                 messages={messages}
-                currentUserId={loggedInUser?.id}
+                currentUserId={
+                    loggedInUser?._id ||
+                    loggedInUser?.id ||
+                    loggedInUser?.user?._id
+                    }
             />
             <MessageInput
                 onSend={handleSendMessage}

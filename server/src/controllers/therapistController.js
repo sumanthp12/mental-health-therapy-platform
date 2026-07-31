@@ -7,6 +7,7 @@ require("../models/User");
 const Assignment =
 require("../models/Assignment");
 
+
 const createTherapist = async (
   req,
   res
@@ -136,8 +137,36 @@ const getMyClients = async (
 
 };
 
+const getAssignedTherapist = async (req, res) => {
+  try {
+    const assignment = await Assignment.findOne({
+      client: req.user.id,
+    }).populate({
+      path: "therapist",
+      populate: {
+        path: "user",
+        select: "name email",
+      },
+    });
+
+    if (!assignment) {
+      return res.status(404).json({
+        message: "No therapist assigned.",
+      });
+    }
+
+    res.json(assignment.therapist);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Failed to fetch therapist details.",
+    });
+  }
+};
+
 module.exports = {
   createTherapist,
   getAllTherapists,
   getMyClients,
+  getAssignedTherapist,
 };

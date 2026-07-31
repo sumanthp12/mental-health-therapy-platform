@@ -12,6 +12,7 @@ const {
   createTherapist,
   getAllTherapists,
   getMyClients,
+  getAssignedTherapist,
 } = require(
   "../controllers/therapistController"
 );
@@ -35,6 +36,13 @@ router.get(
   protect,
   authorize("therapist"),
   getMyClients
+);
+
+router.get(
+  "/assigned",
+  protect,
+  authorize("client"),
+  getAssignedTherapist
 );
 
 module.exports = router;
