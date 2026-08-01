@@ -32,7 +32,7 @@ const AIMessageList = ({ messages, loading }) => {
   }
 
   return (
-    <div className="flex-1 space-y-5 overflow-y-auto rounded-2xl bg-gray-50 p-5">
+    <div className="flex h-full flex-col space-y-5 overflow-y-auto rounded-2xl bg-gray-50 p-5">
       {messages.map((message, index) => (
         <AIMessageBubble
           key={index}

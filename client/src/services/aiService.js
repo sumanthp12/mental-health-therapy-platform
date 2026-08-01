@@ -15,9 +15,14 @@ API.interceptors.request.use((config) => {
 });
 
 export const chatWithAI = async (message) => {
-  const { data } = await API.post("/chat", {
+  const response = await API.post("/chat", {
     message,
   });
 
-  return data;
+  return response.data;
+};
+
+export const getAIHistory = async () => {
+  const response = await API.get("/history");
+  return response.data.messages;
 };

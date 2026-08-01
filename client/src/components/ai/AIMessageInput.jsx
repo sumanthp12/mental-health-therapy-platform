@@ -32,7 +32,7 @@ const AIMessageInput = ({
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+    <div className="bg-white p-4">
       <div className="flex items-end gap-3">
         <textarea
           ref={textareaRef}

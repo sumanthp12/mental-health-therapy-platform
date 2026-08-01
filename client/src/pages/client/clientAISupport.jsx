@@ -1,17 +1,39 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AIChatHeader from "../../components/ai/AIChatHeader";
 import SuggestedPrompts from "../../components/ai/SuggestedPrompts";
 import AIMessageList from "../../components/ai/AIMessageList";
 import AIMessageInput from "../../components/ai/AIMessageInput";
-import { chatWithAI } from "../../services/aiService";
+import { chatWithAI, getAIHistory } from "../../services/aiService";
 
-const clientAISupport = () => {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+const ClientAISupport = () => {
   const [messages, setMessages] = useState([]);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [input, setInput] = useState("");
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [loading, setLoading] = useState(false);
+
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
+    loadHistory();
+  }, []);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages]);
+
+  const loadHistory = async () => {
+    try {
+      const history = await getAIHistory();
+
+      if (history && history.length > 0) {
+        setMessages(history);
+      }
+    } catch (error) {
+      console.error("Failed to load AI history:", error);
+    }
+  };
 
   const getCurrentTime = () =>
     new Date().toLocaleTimeString([], {
@@ -33,7 +55,6 @@ const clientAISupport = () => {
     setMessages((prev) => [...prev, userMessage]);
 
     setInput("");
-
     setLoading(true);
 
     try {
@@ -70,28 +91,35 @@ const clientAISupport = () => {
   };
 
   return (
-    <div className="space-y-6">
-    <AIChatHeader />
+    <div className="flex h-[calc(100vh-120px)] flex-col">
+      {messages.length === 0 && (
+        <>
+          <AIChatHeader />
+          <SuggestedPrompts onSelect={handleSuggestedPrompt} />
+        </> 
+      )}
 
-    {messages.length === 0 && (
-      <SuggestedPrompts onSelect={handleSuggestedPrompt} />
-    )}
+      <div className="mt-4 flex flex-1 flex-col overflow-hidden rounded-xl border bg-white">
+        <div className="flex-1 min-h-0 p-6">
+          <AIMessageList
+            messages={messages}
+            loading={loading}
+          />
 
-    <div className="flex h-[600px] flex-col gap-4">
-      <AIMessageList
-        messages={messages}
-        loading={loading}
-      />
+          <div ref={bottomRef} />
+        </div>
 
-      <AIMessageInput
-        input={input}
-        setInput={setInput}
-        onSend={sendMessage}
-        loading={loading}
-      />
+        <div className="border-t p-4">
+          <AIMessageInput
+            input={input}
+            setInput={setInput}
+            onSend={sendMessage}
+            loading={loading}
+          />
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
 };
 
-export default clientAISupport;
+export default ClientAISupport;

@@ -1,84 +1,84 @@
-const chatWithAI =
-async (req, res) => {
+const AIConversation = require("../models/AIConversation");
 
+const { generateAIResponse } = require("../services/geminiService");
+
+const chatWithAI = async (req, res) => {
   try {
+    const { message } = req.body;
 
-    const { message } =
-      req.body;
-
-    let reply =
-      "I'm here to support you.";
-
-    const lowerMessage =
-      message.toLowerCase();
-
-    if (
-      lowerMessage.includes(
-        "anxiety"
-      ) ||
-      lowerMessage.includes(
-        "anxious"
-      )
-    ) {
-
-      reply =
-      "Feeling anxious can be difficult. Try deep breathing exercises, short walks, and breaking large tasks into smaller manageable steps. If anxiety persists, consider speaking with a therapist.";
-
+    if (!message) {
+      return res.status(400).json({
+        message: "Message is required",
+      });
     }
 
-    else if (
-      lowerMessage.includes(
-        "stress"
-      )
-    ) {
+    const userId = req.user.id;
 
-      reply =
-      "Stress is a natural response to challenges. Make sure you get enough rest, stay hydrated, and schedule short breaks throughout your day.";
-
-    }
-
-    else if (
-      lowerMessage.includes(
-        "sad"
-      ) ||
-      lowerMessage.includes(
-        "depressed"
-      )
-    ) {
-
-      reply =
-      "I'm sorry you're feeling this way. Try reaching out to someone you trust and engaging in activities you normally enjoy. If these feelings continue, consider seeking professional support.";
-
-    }
-
-    else if (
-      lowerMessage.includes(
-        "sleep"
-      )
-    ) {
-
-      reply =
-      "Maintaining a consistent sleep schedule, reducing screen time before bed, and avoiding caffeine late in the day may help improve sleep quality.";
-
-    }
-
-    res.status(200).json({
-      success: true,
-      reply,
+    let conversation = await AIConversation.findOne({
+      user: userId,
     });
 
+    if (!conversation) {
+      conversation = await AIConversation.create({
+        user: userId,
+        messages: [],
+      });
+    }
+
+    // Save user message
+    conversation.messages.push({
+      role: "user",
+      content: message,
+    });
+
+      const aiReply = await generateAIResponse(message);
+
+    // Save AI response
+    conversation.messages.push({
+      role: "assistant",
+      content: aiReply,
+    });
+
+    await conversation.save();
+
+    res.json({
+      reply: aiReply,
+    });
   } catch (error) {
+    console.error(error);
 
     res.status(500).json({
-      success: false,
-      message:
-        error.message,
+      message: "Failed to generate AI response",
+    });
+  }
+};
+
+
+const getConversationHistory = async (req, res) => {
+  try {
+    const conversation = await AIConversation.findOne({
+      user: req.user.id,
     });
 
-  }
+    if (!conversation) {
+      return res.json({
+        messages: [],
+      });
+    }
 
+    res.json({
+      messages: conversation.messages,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Failed to load history",
+    });
+  }
 };
 
 module.exports = {
   chatWithAI,
+  getConversationHistory,
 };

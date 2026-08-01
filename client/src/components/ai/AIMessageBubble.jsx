@@ -14,7 +14,7 @@ const AIMessageBubble = ({ message }) => {
       }`}
     >
       <div
-        className={`flex max-w-[85%] items-end gap-3 ${
+        className={`flex max-w-[76%] items-end gap-3 ${
           isUser ? "flex-row-reverse" : ""
         }`}
       >
@@ -31,7 +31,7 @@ const AIMessageBubble = ({ message }) => {
 
         {/* Message */}
         <div
-          className={`group rounded-2xl px-5 py-4 shadow-sm transition-all ${
+        className={`group max-w-full rounded-2xl px-5 py-4 shadow-sm transition-all ${
             isUser
               ? "bg-blue-600 text-white rounded-br-md"
               : "border border-gray-200 bg-white text-gray-800 rounded-bl-md"
