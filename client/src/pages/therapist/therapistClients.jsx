@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, Users } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { findOrCreateConversation } from "../../services/chatService";
+import ScheduleSessionModal from "../../components/sessions/ScheduleSessionModal";
 
 function Clients() {
   const { user, token } = useAuth();
@@ -10,6 +11,8 @@ function Clients() {
 
   const [assignedClients, setAssignedClients] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);  
 
   const fetchAssignedClients = async () => {
     try {
@@ -42,6 +45,11 @@ function Clients() {
     } catch (error) {
       console.error("Failed to start conversation:", error);
     }
+  };
+
+  const handleSchedule = (assignment) => {
+    setSelectedClient(assignment.client);
+    setShowScheduleModal(true);
   };
 
   useEffect(() => {
@@ -148,6 +156,12 @@ function Clients() {
                       >
                         Message
                       </button>
+                      <button
+                        className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
+                        onClick={() => handleSchedule(assignment)}
+                      >
+                        Schedule
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -168,6 +182,14 @@ function Clients() {
           </p>
         </div>
       </div>
+      <ScheduleSessionModal
+        open={showScheduleModal}
+        onClose={() => setShowScheduleModal(false)}
+        client={selectedClient}
+        onSuccess={() => {
+          fetchAssignedClients();
+        }}
+      />
     </div>
   );
 }

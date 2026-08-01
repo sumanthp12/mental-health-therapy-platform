@@ -32,6 +32,7 @@ const sessionSchema =
         enum: [
           "pending",
           "approved",
+          "live",
           "completed",
           "cancelled",
         ],
@@ -45,6 +46,16 @@ const sessionSchema =
 
       meetingRoom: {
         type: String,
+        default: null,
+      },
+
+      meetingStartedAt: {
+        type: Date,
+        default: null,
+      },
+
+      meetingEndedAt: {
+        type: Date,
         default: null,
       },
 

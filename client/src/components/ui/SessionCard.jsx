@@ -14,6 +14,9 @@ function SessionCard({
   meetingRoom,
   sessionId,
   onApprove,
+  onStartMeeting,
+  onCompleteMeeting,
+  isTherapist = false,
 }) {
   const navigate = useNavigate();
 
@@ -36,11 +39,12 @@ function SessionCard({
   };
 
   const statusClasses = {
-    pending: "bg-yellow-100 text-yellow-700",
-    approved: "bg-green-100 text-green-700",
-    completed: "bg-blue-100 text-blue-700",
-    cancelled: "bg-red-100 text-red-700",
-  };
+  pending: "bg-yellow-100 text-yellow-700",
+  approved: "bg-green-100 text-green-700",
+  live: "bg-red-100 text-red-700",
+  completed: "bg-blue-100 text-blue-700",
+  cancelled: "bg-red-100 text-red-700",
+};
 
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
@@ -101,18 +105,46 @@ function SessionCard({
         {status === "pending" && onApprove ? (
           <button
             onClick={() => onApprove(sessionId)}
-            className="rounded-xl bg-yellow-500 px-5 py-2 text-white transition hover:bg-yellow-600"
+            className="rounded-xl bg-yellow-500 px-5 py-2 text-white hover:bg-yellow-600"
           >
             Approve
           </button>
-        ) : status === "approved" && meetingRoom ? (
-          <button
-            onClick={joinMeeting}
-            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-2 text-white transition hover:opacity-90"
-          >
-            <Video size={18} />
-            Join Session
-          </button>
+        ) : status === "approved" ? (
+          isTherapist ? (
+            <button
+              onClick={() => onStartMeeting(sessionId)}
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-green-600 to-emerald-500 px-5 py-2 text-white hover:opacity-90"
+            >
+              <Video size={18} />
+              Start Session
+            </button>
+          ) : (
+            <button
+              disabled
+              className="cursor-not-allowed rounded-xl bg-slate-200 px-5 py-2 text-slate-600"
+            >
+              Waiting for Therapist
+            </button>
+          )
+        ) : status === "live" ? (
+          <div className="flex gap-2">
+            <button
+              onClick={joinMeeting}
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-2 text-white hover:opacity-90"
+            >
+              <Video size={18} />
+              Join Session
+            </button>
+
+            {isTherapist && (
+              <button
+                onClick={() => onCompleteMeeting(sessionId)}
+                className="rounded-xl bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+              >
+                Complete
+              </button>
+            )}
+          </div>
         ) : status === "completed" ? (
           <button
             disabled

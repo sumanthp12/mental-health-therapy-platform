@@ -70,9 +70,12 @@ function AppRoutes() {
           <Route path="clients/:assignmentId" element={<TherapistClientDetails />} />
         </Route>
 
-        <Route path="/meeting/:roomName" 
+        <Route
+          path="/meeting/:roomName"
           element={
-            <ProtectedRoute role="therapist">
+            <ProtectedRoute
+              roles={["therapist", "client"]}
+            >
               <VideoCall />
             </ProtectedRoute>
           }

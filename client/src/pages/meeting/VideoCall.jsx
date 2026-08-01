@@ -1,7 +1,7 @@
 import { JitsiMeeting } from "@jitsi/react-sdk";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { completeSession } from "../../services/sessionService";
+import { completeMeeting } from "../../services/sessionService";
 
 
 function VideoCall() {
@@ -14,7 +14,7 @@ function VideoCall() {
   const leaveSession = async () => {
         try {
             if (sessionId) {
-            await completeSession(sessionId);
+            await completeMeeting(sessionId);
             }
 
             navigate("/therapist/sessions");

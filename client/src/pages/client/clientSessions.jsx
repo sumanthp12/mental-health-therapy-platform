@@ -106,6 +106,8 @@ useEffect(() => {
               sessionDate={session.sessionDate}
               sessionTime={session.sessionTime}
               status={session.status}
+              meetingRoom={session.meetingRoom}
+              sessionId={session._id}
             />
           );
         })}

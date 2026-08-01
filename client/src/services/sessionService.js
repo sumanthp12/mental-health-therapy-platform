@@ -41,7 +41,23 @@ export const approveSession = async (sessionId) => {
   return response.data;
 };
 
-export const completeSession = async (sessionId) => {
+export const startMeeting = async (sessionId) => {
+  const token = localStorage.getItem("token");
+
+  const response = await axios.patch(
+    `${API}/${sessionId}/start`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return response.data;
+};
+
+export const completeMeeting = async (sessionId) => {
   const token = localStorage.getItem("token");
 
   const response = await axios.patch(

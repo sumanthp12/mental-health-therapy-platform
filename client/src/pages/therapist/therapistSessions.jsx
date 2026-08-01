@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import PageHeader from "../../components/ui/PageHeader";
 import SessionCard from "../../components/ui/SessionCard";
 import { useAuth } from "../../context/AuthContext";
-import { approveSession, } from "../../services/sessionService";
+import { approveSession, startMeeting, completeMeeting, } from "../../services/sessionService";
 
 function Sessions() {
 
@@ -60,6 +60,24 @@ function Sessions() {
       }
     };
 
+    const handleStartMeeting = async (sessionId) => {
+      try {
+        await startMeeting(sessionId);
+        await fetchSessions();
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const handleCompleteMeeting = async (sessionId) => {
+      try {
+        await completeMeeting(sessionId);
+        await fetchSessions();
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
   return (
     <div className="space-y-6">
 
@@ -81,15 +99,18 @@ function Sessions() {
             session,
           ) => (
             <SessionCard
-                key={session._id}
-                therapist={`Client: ${session.client?.name}`}
-                sessionDate={formatDate(session.sessionDate)}
-                sessionTime={session.sessionTime}
-                status={session.status}
-                meetingRoom={session.meetingRoom}
-                sessionId={session._id}
-                onApprove={handleApprove}
-              />
+              key={session._id}
+              therapist={`Client: ${session.client?.name}`}
+              sessionDate={formatDate(session.sessionDate)  }
+              sessionTime={session.sessionTime}
+              status={session.status}
+              meetingRoom={session.meetingRoom}
+              sessionId={session._id}
+              onApprove={handleApprove}
+              onStartMeeting={handleStartMeeting}
+              onCompleteMeeting={handleCompleteMeeting}
+              isTherapist={true}
+            />
           )
         )}
       </div>
