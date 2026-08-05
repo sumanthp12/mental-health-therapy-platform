@@ -5,19 +5,24 @@ const router =
   express.Router();
 
 const {
+  requestPayment,
   createOrder,
   verifyPayment,
   getPaymentHistory,
   getRevenueStats,
   getTherapistEarnings,
-} = require(
-  "../controllers/paymentController"
-);
+} = require("../controllers/paymentController");
 
 const protect =
   require(
     "../middleware/authMiddleware"
   );
+
+router.post(
+  "/request",
+  protect,
+  requestPayment
+);
 
 router.post(
   "/create-order",

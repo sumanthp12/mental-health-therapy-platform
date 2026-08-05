@@ -15,27 +15,32 @@ function Sidebar({ role }) {
   const menus = {
 
     admin: [
-      {
-        name: "Dashboard",
-        path: "/admin/dashboard",
-        icon: LayoutDashboard,
-      },
-      {
-        name: "Therapists",
-        path: "/admin/therapists",
-        icon: Users,
-      },
-      {
-        name: "Clients",
-        path: "/admin/clients",
-        icon: Users,
-      },
-      {
-      name: "Intake Forms",
-      path: "/admin/intake-forms",
-      icon: ClipboardList,
-    },
-    ],
+        {
+          name: "Dashboard",
+          path: "/admin/dashboard",
+          icon: LayoutDashboard,
+        },
+        {
+          name: "Therapists",
+          path: "/admin/therapists",
+          icon: Users,
+        },
+        {
+          name: "Clients",
+          path: "/admin/clients",
+          icon: Users,
+        },
+        {
+          name: "Payments",
+          path: "/admin/payments",
+          icon: CreditCard,
+        },
+        {
+          name: "Intake Forms",
+          path: "/admin/intake-forms",
+          icon: ClipboardList,
+        },
+      ],
 
     client: [
       {

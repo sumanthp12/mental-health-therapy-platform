@@ -19,6 +19,7 @@ const {
   startMeeting,
   completeSession,
   joinMeeting,
+  getAllSessions,
 } = require(
   "../controllers/sessionController"
 );
@@ -76,6 +77,13 @@ router.get(
   "/:id/join",
   protect,
   joinMeeting
+);
+
+router.get(
+  "/admin",
+  protect,
+  authorize("admin"),
+  getAllSessions
 );
 
 module.exports =

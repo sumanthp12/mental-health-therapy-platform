@@ -12,6 +12,64 @@ const razorpay = new Razorpay({
     process.env.RAZORPAY_KEY_SECRET,
 });
 
+const requestPayment = async (req, res) => {
+  try {
+    const {
+      clientId,
+      sessionId,
+      amount,
+      description,
+      dueDate,
+    } = req.body;
+
+    const existingPayment =
+      await Payment.findOne({
+        session: sessionId,
+        status: {
+          $in: [
+            "requested",
+            "created",
+            "paid",
+          ],
+        },
+      });
+
+    if (existingPayment) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Payment request already exists for this session.",
+      });
+    }
+
+    const payment =
+      await Payment.create({
+        user: clientId,
+        session: sessionId,
+        amount,
+        description,
+        dueDate,
+        requestedBy: req.user.id,
+        status: "requested",
+      });
+
+    res.status(201).json({
+      success: true,
+      message:
+        "Payment request created successfully.",
+      payment,
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+
+  }
+};
+
 const createOrder =
   async (req, res) => {
 
@@ -33,18 +91,20 @@ const createOrder =
         });
 
       const payment =
-        await Payment.create({
-          user:
-            req.user.id,
-
-          session:
-            sessionId,
-
-          amount,
-
-          razorpayOrderId:
-            order.id,
-        });
+        await Payment.findOneAndUpdate(
+          {
+            session: sessionId,
+            user: req.user.id,
+            status: "requested",
+          },
+          {
+            razorpayOrderId: order.id,
+            status: "created",
+          },
+          {
+            new: true,
+          }
+        );
 
       res.status(201).json({
         success: true,
@@ -348,6 +408,7 @@ async (
 };
 
 module.exports = {
+  requestPayment,
   createOrder,
   verifyPayment,
   getPaymentHistory,

@@ -72,3 +72,22 @@ export const completeMeeting = async (sessionId) => {
 
   return response.data;
 };
+
+export const getAdminSessions =
+  async () => {
+
+    const token =
+    localStorage.getItem("token");
+
+    const response =
+    await axios.get(
+      `${API}/admin`,
+      {
+        headers:{
+          Authorization:`Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  };

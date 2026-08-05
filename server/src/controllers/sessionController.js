@@ -360,6 +360,20 @@ async (req, res) => {
 
 };
 
+const getAllSessions = async (req, res) => {
+  try {
+    const sessions = await Session.find()
+      .populate("client", "name email")
+      .populate("therapist", "fullName specialization");
+
+    res.status(200).json(sessions);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   bookSession,
   scheduleSession,
@@ -369,4 +383,5 @@ module.exports = {
   startMeeting,
   completeSession,
   joinMeeting,
+  getAllSessions,
 };

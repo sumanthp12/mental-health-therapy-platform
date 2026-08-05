@@ -13,6 +13,7 @@ import AdminDashboard from "../pages/admin/adminDashboard";
 import AdminTherapists from "../pages/admin/adminTherapists";
 import AdminClients from "../pages/admin/adminClients";
 import AdminIntakeForms from "../pages/admin/adminIntakeForms";
+import AdminPayments from "../pages/admin/adminPayments";
 
 // Client Pages
 import ClientDashboard from "../pages/client/clientDashboard";
@@ -20,6 +21,7 @@ import ClientMyTherapist from "../pages/client/clientMyTherapist";
 import ClientSessions from "../pages/client/clientSessions";
 import ClientMessages from "../pages/client/clientMessages";
 import ClientAISupport from "../pages/client/clientAISupport";
+import ClientPayments from "../pages/client/clientPayments";
 
 // Therapist Pages
 import TherapistDashboard from "../pages/therapist/therapistDashboard";
@@ -49,7 +51,8 @@ function AppRoutes() {
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="therapists" element={<AdminTherapists />} />
           <Route path="clients" element={<AdminClients />} />
-          <Route path="/admin/intake-forms" element={<AdminIntakeForms />} />
+          <Route path="intake-forms" element={<AdminIntakeForms />} />
+          <Route path="payments" element={<AdminPayments />} />
         </Route>
 
         {/* Client */}
@@ -59,6 +62,7 @@ function AppRoutes() {
           <Route path="sessions" element={<ClientSessions />} />
           <Route path="messages" element={<ClientMessages />} />
           <Route path="ai-support" element={<ClientAISupport />} />
+          <Route path="payments" element={<ClientPayments />} />
         </Route>
 
         {/* Therapist */}
