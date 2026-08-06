@@ -14,12 +14,32 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
+
 export const getTherapists = async () => {
   const { data } = await API.get("/");
   return data;
 };
 
+
 export const getAssignedTherapist = async () => {
   const { data } = await API.get("/assigned");
+  return data;
+};
+
+
+export const createTherapist = async (therapistData) => {
+  const { data } = await API.post("/", therapistData);
+  return data;
+};
+
+
+export const updateTherapist = async (id, therapistData) => {
+  const { data } = await API.put(`/${id}`, therapistData);
+  return data;
+};
+
+
+export const deleteTherapist = async (id) => {
+  const { data } = await API.delete(`/${id}`);
   return data;
 };

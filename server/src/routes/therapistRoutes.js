@@ -10,6 +10,8 @@ require("../middleware/roleMiddleware");
 
 const {
   createTherapist,
+  updateTherapist,
+  deleteTherapist,
   getAllTherapists,
   getMyClients,
   getAssignedTherapist,
@@ -29,6 +31,20 @@ router.post(
   protect,
   authorize("admin"),
   createTherapist
+);
+
+router.put(
+  "/:id",
+  protect,
+  authorize("admin"),
+  updateTherapist
+);
+
+router.delete(
+  "/:id",
+  protect,
+  authorize("admin"),
+  deleteTherapist
 );
 
 router.get(

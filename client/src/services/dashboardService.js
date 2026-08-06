@@ -23,3 +23,8 @@ export const getClientDashboard = async () => {
   const { data } = await API.get("/client");
   return data;
 };
+
+export const getAdminDashboard = async () => {
+  const { data } = await API.get("/admin");
+  return data;
+};

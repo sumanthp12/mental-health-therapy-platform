@@ -3,6 +3,8 @@ const Session = require("../models/Session");
 const Therapist = require("../models/Therapist");
 const Conversation = require("../models/Conversation");
 const Message = require("../models/Message");
+const User = require("../models/User");
+const Payment = require("../models/Payment"); 
 
 const getTherapistDashboard = async (req, res) => {
   try {
@@ -68,7 +70,7 @@ const getTherapistDashboard = async (req, res) => {
     }
     };
 
-    const getClientDashboard = async (req, res) => {
+const getClientDashboard = async (req, res) => {
   try {
     const clientId = req.user.id;
 
@@ -123,7 +125,102 @@ const getTherapistDashboard = async (req, res) => {
   }
 };
 
+const getAdminDashboard = async (req, res) => {
+  try {
+
+    // Fetch all dashboard statistics in parallel
+    const [
+      totalClients,
+      totalTherapists,
+      totalSessions,
+      revenueResult,
+      upcomingSessions,
+    ] = await Promise.all([
+
+      User.countDocuments({
+        role: "client",
+      }),
+
+      Therapist.countDocuments(),
+
+      Session.countDocuments(),
+
+      Payment.aggregate([
+        {
+          $match: {
+            status: "paid",
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: {
+              $sum: "$amount",
+            },
+          },
+        },
+      ]),
+
+      Session.find({
+        sessionDate: {
+          $gte: new Date(),
+        },
+        status: {
+          $in: ["approved", "scheduled"],
+        },
+      })
+        .populate("client", "name")
+        .populate({
+          path: "therapist",
+          populate: {
+            path: "user",
+            select: "name",
+          },
+        })
+        .sort({ sessionDate: 1 })
+        .limit(5),
+    ]);
+
+    const revenue =
+      revenueResult.length > 0
+        ? revenueResult[0].totalRevenue
+        : 0;
+
+    res.status(200).json({
+      success: true,
+
+      stats: {
+        clients: totalClients,
+        therapists: totalTherapists,
+        sessions: totalSessions,
+        revenue,
+      },
+      upcomingSessions: upcomingSessions.map((session) => ({
+        id: session._id,
+        client: session.client?.name || "Unknown Client",
+        therapist:
+          session.therapist?.user?.name || "Unknown Therapist",
+        date: session.sessionDate,
+        time: session.sessionTime,
+        status: session.status,
+      })),
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message:
+        "Failed to load admin dashboard.",
+    });
+
+  }
+};
+
 module.exports = {
   getTherapistDashboard,
   getClientDashboard,
+  getAdminDashboard,
 };
