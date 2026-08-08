@@ -16,6 +16,8 @@ function AdminPayments() {
   const [search, setSearch] = useState("");
   const [selectedSession, setSelectedSession] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [revenue, setRevenue] =
+  useState(0);
 
   const fetchSessions = async () => {
     try {
@@ -38,10 +40,42 @@ function AdminPayments() {
     }
   };
 
+  const fetchRevenue = async () => {
+    try {
+      const token =
+        localStorage.getItem("token");
+
+      const response = await fetch(
+        "http://localhost:8000/api/payments/revenue-stats",
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (data.success) {
+        setRevenue(
+          data.stats?.totalRevenue || 0
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Failed to fetch revenue:",
+        error
+      );
+    }
+  };
+
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchSessions();
-  }, []);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  fetchSessions();
+  fetchRevenue();
+}, []);
 
   const filteredSessions = useMemo(() => {
     return sessions.filter((session) =>
@@ -69,7 +103,7 @@ function AdminPayments() {
           title="Payment Requested"
           value={
             sessions.filter(
-              (s) => s.paymentStatus === "requested"
+              (s) => s.paymentStatus?.toLowerCase() === "requested"
             ).length
           }
           icon={<Clock3 size={28} />}
@@ -80,7 +114,7 @@ function AdminPayments() {
           title="Paid"
           value={
             sessions.filter(
-              (s) => s.paymentStatus === "paid"
+              (s) => s.paymentStatus?.toLowerCase() === "paid"
             ).length
           }
           icon={<CheckCircle2 size={28} />}
@@ -89,10 +123,12 @@ function AdminPayments() {
 
         <StatsCard
           title="Revenue"
-          value={`₹${sessions
-            .filter((s) => s.paymentStatus === "paid")
-            .reduce((total, s) => total + (s.amount || 0), 0)}`}
-          icon={<CircleDollarSign size={28} />}
+          value={`₹${Number(
+            revenue || 0
+          ).toLocaleString("en-IN")}`}
+          icon={
+            <CircleDollarSign size={28} />
+          }
           color="bg-purple-600"
         />
 
@@ -160,25 +196,26 @@ function AdminPayments() {
                 <td className="p-4">
 
                   <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      session.paymentStatus === "paid"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
-                    {session.paymentStatus ||
-                      "Pending"}
-                  </span>
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    session.paymentStatus?.toLowerCase() === "paid"
+                      ? "bg-green-100 text-green-700"
+                      : session.paymentStatus?.toLowerCase() === "requested"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  {session.paymentStatus || "Pending"}
+                </span>
 
                 </td>
 
                 <td className="p-4">
 
-                  {session.paymentStatus === "paid" ? (
+                  {session.paymentStatus?.toLowerCase() === "paid" ? (
                       <span className="rounded-lg bg-green-100 px-3 py-2 text-sm font-medium text-green-700">
                         Paid
                       </span>
-                    ) : session.paymentStatus === "requested" ? (
+                    ) : session.paymentStatus?.toLowerCase() === "requested" ? (
                       <span className="rounded-lg bg-yellow-100 px-3 py-2 text-sm font-medium text-yellow-700">
                         Requested
                       </span>
@@ -213,7 +250,10 @@ function AdminPayments() {
             setShowPaymentModal(false);
             setSelectedSession(null);
           }}
-          onSuccess={fetchSessions}
+          onSuccess={async () => {
+            await fetchSessions();
+            await fetchRevenue();
+          }}
         />
 
     </div>

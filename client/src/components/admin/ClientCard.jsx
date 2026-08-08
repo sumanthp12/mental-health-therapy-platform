@@ -1,9 +1,20 @@
-import { Eye, CreditCard, Mail, UserCheck } from "lucide-react";
-
+import {
+  Eye,
+  Mail,
+  UserCheck,
+  Pencil,
+  Trash2,
+} from "lucide-react";
+const statusStyles = {
+  Completed: "bg-green-100 text-green-700",
+  Pending: "bg-yellow-100 text-yellow-700",
+  Active: "bg-blue-100 text-blue-700",
+};
 const ClientCard = ({
   client,
-  onClick,
-  onRequestPayment,
+  onView,
+  onEdit,
+  onDelete,
 }) => {
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
@@ -22,9 +33,7 @@ const ClientCard = ({
 
         <span
           className={`rounded-full px-3 py-1 text-xs font-semibold ${
-            client.status === "Active"
-              ? "bg-green-100 text-green-700"
-              : "bg-red-100 text-red-700"
+            statusStyles[client.status] || "bg-gray-100 text-gray-700"
           }`}
         >
           {client.status}
@@ -46,21 +55,73 @@ const ClientCard = ({
 
       {/* Actions */}
       <div className="mt-6 flex gap-3">
+
         <button
-          onClick={() => onClick(client)}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-300 py-2.5 text-sm font-medium transition hover:bg-gray-100"
+          onClick={() => onView(client)}
+          className="
+            flex
+            flex-1
+            items-center
+            justify-center
+            gap-2
+            rounded-xl
+            border
+            border-gray-300
+            py-2.5
+            text-sm
+            font-medium
+            transition
+            hover:bg-gray-100
+          "
         >
           <Eye size={18} />
-          View
+
+          View Details
+
         </button>
 
         <button
-          onClick={() => onRequestPayment(client)}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
+          onClick={() => onEdit(client)}
+          className="
+            flex
+            flex-1
+            items-center
+            justify-center
+            gap-2
+            rounded-xl
+            bg-green-600
+            py-2.5
+            text-sm
+            font-medium
+            text-white
+            transition
+            hover:bg-green-700
+          "
         >
-          <CreditCard size={18} />
-          Request Payment
+          <Pencil size={18} />
+
+          Update
+
         </button>
+
+        <button
+          onClick={() => onDelete(client)}
+          className="
+            flex
+            h-11
+            w-11
+            items-center
+            justify-center
+            rounded-xl
+            bg-red-500
+            text-white
+            transition
+            hover:bg-red-600
+          "
+        >
+          <Trash2 size={18} />
+        </button>
+
       </div>
     </div>
   );

@@ -53,10 +53,15 @@ function PaymentRequestModal({
       alert("Payment request sent successfully.");
 
     } catch (error) {
+        console.error(
+          "Payment request failed:",
+          error
+        );
 
-      console.error(error);
-
-      alert("Failed to send payment request.");
+        alert(
+          error.response?.data?.message ||
+          "Failed to send payment request."
+        );
 
     } finally {
 
@@ -66,11 +71,10 @@ function PaymentRequestModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="flex w-full max-w-lg max-h-[90vh] flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
 
-      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-
-        <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center justify-between border-b px-6 py-5 shrink-0">
 
           <h2 className="text-xl font-semibold">
             Request Session Payment
@@ -82,7 +86,7 @@ function PaymentRequestModal({
 
         </div>
 
-        <div className="space-y-4">
+        <div className="flex flex-col flex-1 min-h-0 overflow-y-auto p-6 space-y-4">
 
           <div>
 
@@ -189,15 +193,17 @@ function PaymentRequestModal({
 
         </div>
 
+        <div className="shrink-0 border-t bg-white px-6 py-5">
         <button
           disabled={loading}
           onClick={handleSubmit}
-          className="mt-6 w-full rounded-xl bg-blue-600 py-3 font-medium text-white hover:bg-blue-700"
+          className="w-full rounded-xl bg-blue-600 py-3 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading
             ? "Sending..."
             : "Send Payment Request"}
         </button>
+      </div>
 
       </div>
 

@@ -491,11 +491,11 @@ const handleDeleteTherapist = async (id) => {
 {showModal && (
   <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
 
-    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl">
+    <div className="bg-white rounded-3xl shadow-2xl w-1/2 max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
 
       {/* Header */}
 
-      <div className="flex items-center justify-between p-6 border-b">
+      <div className="flex items-center justify-between p-6 border-b shrink-0">
 
         <div>
           <h2 className="text-2xl font-bold">
@@ -522,7 +522,7 @@ const handleDeleteTherapist = async (id) => {
 
       <form
         onSubmit={handleCreateTherapist}
-        className="p-6 space-y-5"
+        className="flex flex-col flex-1 min-h-0 overflow-y-auto p-6 space-y-4"
       >
 
         <div className="grid grid-cols-2 gap-4">

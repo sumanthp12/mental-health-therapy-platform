@@ -35,10 +35,34 @@ const requestPayment = async (req, res) => {
       });
 
     if (existingPayment) {
-      return res.status(400).json({
-        success: false,
+
+      // Keep Session paymentStatus
+      // synchronized with Payment status
+      let sessionPaymentStatus =
+        existingPayment.status;
+
+      if (
+        existingPayment.status ===
+        "created"
+      ) {
+        sessionPaymentStatus =
+          "requested";
+      }
+
+      await Session.findByIdAndUpdate(
+        sessionId,
+        {
+          paymentStatus:
+            sessionPaymentStatus,
+        }
+      );
+
+      return res.status(200).json({
+        success: true,
+        alreadyExists: true,
         message:
           "Payment request already exists for this session.",
+        payment: existingPayment,
       });
     }
 
@@ -52,6 +76,13 @@ const requestPayment = async (req, res) => {
         requestedBy: req.user.id,
         status: "requested",
       });
+
+      await Session.findByIdAndUpdate(
+        sessionId,
+        {
+          paymentStatus: "requested",
+        }
+      );
 
     res.status(201).json({
       success: true,
