@@ -82,8 +82,7 @@ useEffect(() => {
           </h3>
 
           <p className="text-slate-500 mt-2">
-            Book your first therapy
-            session to get started.
+            Your therapist will schedule your first therapy session once you have been assigned.
           </p>
         </div>
       ) : (
@@ -96,8 +95,6 @@ useEffect(() => {
           "
         >
           {sessions.map((session, index) => {
-
-          // console.log("SESSION DATA:", session);
 
           return (
             <SessionCard

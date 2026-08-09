@@ -39,6 +39,8 @@ function ClientDashboard() {
     );
   }
 
+  const hasTherapist = Boolean(dashboard?.assignedTherapist);
+
   return (
     <div className="space-y-8">
 
@@ -63,25 +65,51 @@ function ClientDashboard() {
               <p className="text-sm text-slate-500">
                 Assigned Therapist
               </p>
-              <h2 className="mt-1 text-2xl font-bold">
-                {dashboard?.assignedTherapist?.user?.name || "Not Assigned"}
-              </h2>
-              <p className="mt-1 text-slate-500">
-                {dashboard?.assignedTherapist?.specialization || "-"}
-              </p>
+
+              {hasTherapist ? (
+                <>
+                  <h2 className="mt-1 text-2xl font-bold">
+                    {dashboard.assignedTherapist?.user?.name}
+                  </h2>
+
+                  <p className="mt-1 text-slate-500">
+                    {dashboard.assignedTherapist?.specialization || "-"}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="mt-1 text-2xl font-bold text-slate-800">
+                    Not Assigned
+                  </h2>
+
+                  <p className="mt-1 text-slate-500">
+                    Waiting for therapist assignment
+                  </p>
+                </>
+              )}
             </div>
+
             <UserRound
               size={48}
               className="text-blue-600"
             />
           </div>
-          <button
-            onClick={() => navigate("/client/my-therapist")}
-            className="mt-4 flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700"
-          >
-            View Profile
-            <ArrowRight size={18} />
-          </button>
+
+          {hasTherapist ? (
+            <button
+              onClick={() => navigate("/client/my-therapist")}
+              className="mt-4 flex items-center gap-2 font-medium text-blue-600 transition hover:text-blue-700"
+            >
+              View Profile
+              <ArrowRight size={18} />
+            </button>
+          ) : (
+            <div className="mt-4 flex items-center gap-2 text-sm font-medium text-slate-400">
+              <span>
+                Your therapist will appear here once assigned.
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Sessions */}
@@ -91,18 +119,21 @@ function ClientDashboard() {
               <p className="text-sm text-slate-500">
                 Upcoming Sessions
               </p>
+
               <h2 className="mt-1 text-4xl font-bold">
                 {dashboard?.upcomingSessions?.length || 0}
               </h2>
             </div>
+
             <Calendar
               size={48}
               className="text-green-600"
             />
           </div>
+
           <button
             onClick={() => navigate("/client/sessions")}
-            className="mt-4 flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700"
+            className="mt-4 flex items-center gap-2 font-medium text-blue-600 transition hover:text-blue-700"
           >
             View Sessions
             <ArrowRight size={18} />
@@ -118,6 +149,7 @@ function ClientDashboard() {
           <h2 className="mb-5 text-xl font-bold">
             Next Session
           </h2>
+
           {dashboard?.nextSession ? (
             <>
               <p className="text-lg font-semibold">
@@ -125,9 +157,11 @@ function ClientDashboard() {
                   dashboard.nextSession.sessionDate
                 ).toLocaleDateString()}
               </p>
+
               <p className="mt-1 text-slate-500">
                 {dashboard.nextSession.sessionTime}
               </p>
+
               <button
                 className="mt-6 rounded-xl bg-blue-600 px-5 py-3 text-white transition hover:bg-blue-700"
               >
@@ -140,56 +174,92 @@ function ClientDashboard() {
                 className="mx-auto mb-4 text-slate-400"
                 size={42}
               />
-              <p className="text-slate-500">
+
+              <p className="font-medium text-slate-600">
                 No upcoming sessions scheduled.
+              </p>
+
+              <p className="mt-1 text-sm text-slate-400">
+                Your therapist will schedule a session once you are assigned.
               </p>
             </div>
           )}
         </div>
 
         {/* Quick Actions */}
-
         <div className="rounded-3xl bg-white p-6 shadow-sm">
           <h2 className="mb-5 text-xl font-bold">
             Quick Actions
           </h2>
+
           <div className="grid grid-cols-2 gap-4">
+
+            {/* My Therapist */}
             <button
               onClick={() => navigate("/client/my-therapist")}
               className="rounded-2xl border p-5 text-left transition hover:bg-blue-50"
             >
               <UserRound className="mb-3 text-blue-600" />
+
               <p className="font-semibold">
                 My Therapist
               </p>
+
+              <p className="mt-1 text-sm text-slate-400">
+                {hasTherapist ? "View therapist" : "Assignment pending"}
+              </p>
             </button>
+
+            {/* Messages */}
             <button
               onClick={() => navigate("/client/messages")}
-              className="rounded-2xl border p-5 text-left transition hover:bg-blue-50"
+              className="rounded-2xl border p-5 text-left transition hover:bg-green-50"
             >
               <MessageCircle className="mb-3 text-green-600" />
+
               <p className="font-semibold">
                 Messages
               </p>
+
+              <p className="mt-1 text-sm text-slate-400">
+                {hasTherapist
+                  ? "Message your therapist"
+                  : "Available after assignment"}
+              </p>
             </button>
+
+            {/* Sessions */}
             <button
               onClick={() => navigate("/client/sessions")}
-              className="rounded-2xl border p-5 text-left transition hover:bg-blue-50"
+              className="rounded-2xl border p-5 text-left transition hover:bg-purple-50"
             >
               <Calendar className="mb-3 text-purple-600" />
+
               <p className="font-semibold">
                 Sessions
               </p>
+
+              <p className="mt-1 text-sm text-slate-400">
+                View your sessions
+              </p>
             </button>
+
+            {/* AI Support */}
             <button
               onClick={() => navigate("/client/ai-support")}
-              className="rounded-2xl border p-5 text-left transition hover:bg-blue-50"
+              className="rounded-2xl border p-5 text-left transition hover:bg-pink-50"
             >
               <Brain className="mb-3 text-pink-600" />
+
               <p className="font-semibold">
                 AI Support
               </p>
+
+              <p className="mt-1 text-sm text-slate-400">
+                Wellness support
+              </p>
             </button>
+
           </div>
         </div>
       </div>

@@ -91,35 +91,43 @@ const ClientAISupport = () => {
   };
 
   return (
-    <div className="flex h-[calc(100vh-120px)] flex-col">
-      {messages.length === 0 && (
-        <>
-          <AIChatHeader />
-          <SuggestedPrompts onSelect={handleSuggestedPrompt} />
-        </> 
-      )}
+  <div className="flex min-h-[calc(100vh-120px)] flex-col gap-4 pb-6">
 
-      <div className="mt-4 flex flex-1 flex-col overflow-hidden rounded-xl border bg-white">
-        <div className="flex-1 min-h-0 p-6">
-          <AIMessageList
-            messages={messages}
-            loading={loading}
-          />
+    {/* AI Header + Suggested Prompts */}
+    {messages.length === 0 && (
+      <>
+        <AIChatHeader />
+        <SuggestedPrompts onSelect={handleSuggestedPrompt} />
+      </>
+    )}
 
-          <div ref={bottomRef} />
-        </div>
+    {/* Chat Container */}
+    <div className="flex min-h-[360px] flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
 
-        <div className="border-t p-4">
-          <AIMessageInput
-            input={input}
-            setInput={setInput}
-            onSend={sendMessage}
-            loading={loading}
-          />
-        </div>
+      {/* Messages */}
+      <div className="flex min-h-[260px] flex-1 items-center justify-center rounded-2xl bg-gray-50 p-8 text-left">
+
+        <AIMessageList
+          messages={messages}
+          loading={loading}
+        />
+
       </div>
+
+      {/* Input */}
+      <div className="shrink-0 border-t border-gray-100 bg-white p-4">
+        <AIMessageInput
+          input={input}
+          setInput={setInput}
+          onSend={sendMessage}
+          loading={loading}
+        />
+      </div>
+
     </div>
-  );
+
+  </div>
+);
 };
 
 export default ClientAISupport;
