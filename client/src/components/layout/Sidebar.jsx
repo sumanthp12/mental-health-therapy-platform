@@ -49,6 +49,11 @@ function Sidebar({ role }) {
         icon: LayoutDashboard,
       },
       {
+        name: "Intake Form",
+        path: "/client/intake-form",
+        icon: ClipboardList,
+      },
+      {
         name: "My Therapist",
         path: "/client/my-therapist",
         icon: Users,

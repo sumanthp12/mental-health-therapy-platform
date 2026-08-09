@@ -17,6 +17,7 @@ import AdminPayments from "../pages/admin/adminPayments";
 
 // Client Pages
 import ClientDashboard from "../pages/client/clientDashboard";
+import ClientIntakeForm from "../pages/client/clientIntakeForm";
 import ClientMyTherapist from "../pages/client/clientMyTherapist";
 import ClientSessions from "../pages/client/clientSessions";
 import ClientMessages from "../pages/client/clientMessages";
@@ -58,6 +59,7 @@ function AppRoutes() {
         {/* Client */}
         <Route path="/client" element={<ProtectedRoute role="client"> <ClientLayout /> </ProtectedRoute>}>
           <Route path="dashboard" element={<ClientDashboard />} />
+          <Route path="intake-form" element={<ClientIntakeForm />} />
           <Route path="my-therapist" element={<ClientMyTherapist />} />
           <Route path="sessions" element={<ClientSessions />} />
           <Route path="messages" element={<ClientMessages />} />
