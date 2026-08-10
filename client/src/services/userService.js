@@ -20,6 +20,29 @@ export const getUsers = async () => {
   return data;
 };
 
+export const getProfile = async () => {
+  const { data } = await API.get("/profile");
+  return data;
+};
+
+export const updateProfile = async (profileData) => {
+  const { data } = await API.put(
+    "/profile",
+    profileData
+  );
+
+  return data;
+};
+
+export const changePassword = async (passwordData) => {
+  const { data } = await API.put(
+    "/change-password",
+    passwordData
+  );
+
+  return data;
+};
+
 
 export const updateUser = async (id, userData) => {
   const { data } = await API.put(`/${id}`, userData);

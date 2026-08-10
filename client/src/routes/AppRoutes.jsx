@@ -8,6 +8,9 @@ import LandingPage from "../pages/public/LandingPage";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 
+// Profile Page
+import Profile from "../pages/profile/Profile";
+
 // Admin Pages
 import AdminDashboard from "../pages/admin/adminDashboard";
 import AdminTherapists from "../pages/admin/adminTherapists";
@@ -46,6 +49,8 @@ function AppRoutes() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
+        <Route path="/profile" element={ <ProtectedRoute roles={["admin", "client", "therapist"]} > <Profile /> </ProtectedRoute> } />
 
         {/* Admin */}
         <Route path="/admin" element={<ProtectedRoute role="admin"> <AdminLayout /> </ProtectedRoute>}>

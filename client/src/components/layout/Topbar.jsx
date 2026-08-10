@@ -1,77 +1,56 @@
-import {
-  Bell,
-  LogOut,
-} from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-import { useNavigate }
-from "react-router-dom";
-
+// eslint-disable-next-line no-unused-vars
 function Topbar({ role }) {
+  const navigate = useNavigate();
 
-  const roleName =
-    role.charAt(0).toUpperCase() +
-    role.slice(1);
+  const storedUser = JSON.parse(
+    localStorage.getItem("user") || "{}"
+  );
 
-    const navigate = useNavigate();
+  const profileName = storedUser?.name || "User";
 
-    const handleLogout = () => {
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
 
-        localStorage.removeItem(
-            "token"
-        );
+    navigate("/login");
+  };
 
-        localStorage.removeItem(
-            "user"
-        );
-
-        navigate("/login");
-        };
+  const handleProfileClick = () => {
+    navigate("/profile");
+  };
 
   return (
     <header
       className="
-      h-20
-      bg-white
-      border-b
-      border-slate-200
-      px-6
-      flex
-      items-center
-      justify-between
-      "
-    >
-
-      <div>
-
-        <h1
-          className="
-          text-2xl
-          font-bold
-          "
-        >
-          Welcome Back, {roleName}!
-        </h1>
-
-        <p
-          className="
-          text-slate-500
-          "
-        >
-          Here's what's happening today
-        </p>
-
-      </div>
-
-      <div
-        className="
+        h-20
+        bg-white
+        border-b
+        border-slate-200
+        px-6
         flex
         items-center
-        gap-5
-        "
-      >
+        justify-between
+      "
+    >
+      {/* Welcome Section */}
+      <div>
+        <h1 className="text-2xl font-bold">
+          Welcome Back, {profileName}!
+        </h1>
 
+        <p className="text-slate-500">
+          Here's what's happening today
+        </p>
+      </div>
+
+      {/* Right Section */}
+      <div className="flex items-center gap-5">
+
+        {/* Notifications */}
         <div className="relative">
-
           <Bell
             size={22}
             className="text-slate-700"
@@ -79,74 +58,76 @@ function Topbar({ role }) {
 
           <span
             className="
-            absolute
-            -top-1
-            -right-1
-            w-2.5
-            h-2.5
-            rounded-full
-            bg-red-500
+              absolute
+              -top-1
+              -right-1
+              w-2.5
+              h-2.5
+              rounded-full
+              bg-red-500
             "
           />
-
         </div>
 
+        {/* Profile */}
         <div
+          onClick={handleProfileClick}
           className="
-          flex
-          items-center
-          gap-3
-          bg-slate-100
-          px-4
-          py-2
-          rounded-2xl
-          "
-        >
-
-          <div
-            className="
-            w-10
-            h-10
-            rounded-full
-            bg-gradient-to-r
-            from-blue-600
-            to-cyan-500
-            text-white
             flex
             items-center
-            justify-center
-            font-semibold
+            gap-3
+            bg-slate-100
+            px-4
+            py-2
+            rounded-2xl
+            cursor-pointer
+            hover:bg-slate-200
+            transition
+          "
+        >
+          {/* Avatar */}
+          <div
+            className="
+              w-10
+              h-10
+              rounded-full
+              bg-gradient-to-r
+              from-blue-600
+              to-cyan-500
+              text-white
+              flex
+              items-center
+              justify-center
+              font-semibold
             "
           >
-            U
+            {profileName.charAt(0).toUpperCase()}
           </div>
 
+          {/* User Info */}
           <div>
-
             <p className="font-semibold">
-              {roleName}
+              {profileName}
             </p>
 
             <p className="text-xs text-slate-500">
               Logged In
             </p>
-
           </div>
-
         </div>
 
+        {/* Logout */}
         <LogOut
-            onClick={handleLogout}
-            className="
+          onClick={handleLogout}
+          className="
             cursor-pointer
             text-slate-600
             hover:text-red-500
             transition
-            "
-            />
+          "
+        />
 
       </div>
-
     </header>
   );
 }
