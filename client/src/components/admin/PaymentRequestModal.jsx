@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { requestPayment } from "../../services/paymentService";
+import { showSuccess, showError } from "../../utils/toast";
 
 function PaymentRequestModal({
   isOpen,
@@ -24,12 +25,12 @@ function PaymentRequestModal({
     try {
 
       if (!amount || Number(amount) <= 0) {
-        alert("Please enter a valid amount.");
+        showError("Please enter a valid amount.");
         return;
       }
 
       if (!dueDate) {
-        alert("Please select a due date.");
+        showError("Please select a due date.");
         return;
       }
       setLoading(true);
@@ -50,7 +51,7 @@ function PaymentRequestModal({
 
       onClose();
 
-      alert("Payment request sent successfully.");
+      showSuccess("Payment request sent successfully.");
 
     } catch (error) {
         console.error(
@@ -58,7 +59,7 @@ function PaymentRequestModal({
           error
         );
 
-        alert(
+        showError(
           error.response?.data?.message ||
           "Failed to send payment request."
         );
@@ -199,9 +200,14 @@ function PaymentRequestModal({
           onClick={handleSubmit}
           className="w-full rounded-xl bg-blue-600 py-3 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading
-            ? "Sending..."
-            : "Send Payment Request"}
+          {loading ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              Sending...
+            </span>
+          ) : (
+            "Send Payment Request"
+          )}
         </button>
       </div>
 

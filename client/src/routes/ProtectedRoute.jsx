@@ -6,27 +6,42 @@ function ProtectedRoute({
   roles,
 }) {
   const user = JSON.parse(
-    localStorage.getItem("user")
+    localStorage.getItem("user") || "null"
   );
 
-  const token =
-    localStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
+  // Not authenticated
   if (!token || !user) {
-    return <Navigate to="/login" replace />;
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
   }
 
-  // Backward compatibility (existing routes)
+  // Single role restriction
   if (role && user.role !== role) {
-    return <Navigate to="/login" replace />;
+    return (
+      <Navigate
+        to="/unauthorized"
+        replace
+      />
+    );
   }
 
-  // New: allow multiple roles
+  // Multiple role restriction
   if (
     roles &&
     !roles.includes(user.role)
   ) {
-    return <Navigate to="/login" replace />;
+    return (
+      <Navigate
+        to="/unauthorized"
+        replace
+      />
+    );
   }
 
   return children;

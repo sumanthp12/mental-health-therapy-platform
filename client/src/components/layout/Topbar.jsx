@@ -1,4 +1,4 @@
-import { Bell, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // eslint-disable-next-line no-unused-vars
@@ -48,26 +48,6 @@ function Topbar({ role }) {
 
       {/* Right Section */}
       <div className="flex items-center gap-5">
-
-        {/* Notifications */}
-        <div className="relative">
-          <Bell
-            size={22}
-            className="text-slate-700"
-          />
-
-          <span
-            className="
-              absolute
-              -top-1
-              -right-1
-              w-2.5
-              h-2.5
-              rounded-full
-              bg-red-500
-            "
-          />
-        </div>
 
         {/* Profile */}
         <div

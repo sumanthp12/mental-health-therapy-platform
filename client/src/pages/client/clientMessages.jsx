@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
-import ConversationList from "../../components/chat/ConversationList";
 import ChatHeader from "../../components/chat/ChatHeader";
 import ChatMessages from "../../components/chat/ChatMessages";
 import MessageInput from "../../components/chat/MessageInput";
@@ -12,6 +11,12 @@ import {
   sendMessage,
 } from "../../services/chatService";
 
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import EmptyState from "../../components/ui/EmptyState";
+import ErrorState from "../../components/ui/ErrorState";
+
+import { showError } from "../../utils/toast";
+
 const loggedInUser = JSON.parse(localStorage.getItem("user"));
 
 function ClientMessages() {
@@ -19,38 +24,60 @@ function ClientMessages() {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [conversationError, setConversationError] = useState(false);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [messagesError, setMessagesError] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const location = useLocation();
   const conversationId = new URLSearchParams(location.search).get("id");
 
   const fetchConversations = async () => {
     try {
+      setLoading(true);
+      setConversationError(false);
+
       const data = await getConversations();
 
-        // Remove invalid conversations
-        const validConversations = data.filter(
-        (conversation) =>
-            conversation.participants &&
-            conversation.participants.length === 2
-        );
+      const validConversations = Array.isArray(data)
+        ? data.filter(
+            (conversation) =>
+              conversation.participants &&
+              conversation.participants.length === 2
+          )
+        : [];
 
-        setConversations(validConversations);
+      setConversations(validConversations);
 
-        if (conversationId) {
+      if (conversationId) {
         const conversation = validConversations.find(
-            (item) => item._id === conversationId
-            );
+          (item) => item._id === conversationId
+        );
 
         if (conversation) {
           setSelectedConversation(conversation);
-        } else if (data.length > 0) {
-          setSelectedConversation(data[0]);
+        } else if (validConversations.length > 0) {
+          setSelectedConversation(validConversations[0]);
+        } else {
+          setSelectedConversation(null);
         }
-      } else if (data.length > 0) {
-        setSelectedConversation(data[0]);
+      } else if (validConversations.length > 0) {
+        setSelectedConversation(validConversations[0]);
+      } else {
+        setSelectedConversation(null);
       }
-    } catch (error) {
-      console.error("Error fetching conversations:", error);
+    } catch (err) {
+      console.error(
+        "Error fetching conversations:",
+        err
+      );
+
+      setConversationError(true);
+
+      showError(
+        err?.response?.data?.message ||
+          "Unable to load conversations."
+      );
     } finally {
       setLoading(false);
     }
@@ -62,30 +89,50 @@ function ClientMessages() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchMessages = async (conversationId) => {
-    try {
-      const data = await getMessages(conversationId);
-
-      setMessages(data);
-
-      if (data.length > 0) {
-        const latest = data[data.length - 1];
-
-        setConversations((prev) =>
-          prev.map((conv) =>
-            conv._id === conversationId
-              ? {
-                  ...conv,
-                  lastMessage: latest,
-                }
-              : conv
-          )
-        );
+const fetchMessages = async (conversationId) => {
+      if (!conversationId) {
+        setMessages([]);
+        return;
       }
-    } catch (error) {
-      console.error(error);
-    }
-  };
+
+      try {
+        setMessagesLoading(true);
+        setMessagesError(false);
+
+        const data = await getMessages(conversationId);
+
+        setMessages(Array.isArray(data) ? data : []);
+
+        if (data.length > 0) {
+          const latest = data[data.length - 1];
+
+          setConversations((prev) =>
+            prev.map((conv) =>
+              conv._id === conversationId
+                ? {
+                    ...conv,
+                    lastMessage: latest,
+                  }
+                : conv
+            )
+          );
+        }
+      } catch (err) {
+        console.error(
+          "Error fetching messages:",
+          err
+        );
+
+        setMessagesError(true);
+
+        showError(
+          err?.response?.data?.message ||
+            "Unable to load messages."
+        );
+      } finally {
+        setMessagesLoading(false);
+      }
+    };
 
   useEffect(() => {
     if (selectedConversation) {
@@ -94,16 +141,26 @@ function ClientMessages() {
     }
   }, [selectedConversation]);
 
-  const handleSendMessage = async (text) => {
-    if (!selectedConversation || !text.trim()) return;
+ const handleSendMessage = async (text) => {
+    if (
+      !selectedConversation ||
+      !text.trim() ||
+      sending
+    ) {
+      return;
+    }
 
     try {
+      setSending(true);
+
       const newMessage = await sendMessage({
         conversationId: selectedConversation._id,
         message: text,
       });
 
-      await fetchMessages(selectedConversation._id);
+      await fetchMessages(
+        selectedConversation._id
+      );
 
       setConversations((prev) =>
         prev.map((conv) =>
@@ -115,21 +172,43 @@ function ClientMessages() {
             : conv
         )
       );
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(
+        "Error sending message:",
+        err
+      );
+
+      showError(
+        err?.response?.data?.message ||
+          "Unable to send message. Please try again."
+      );
+    } finally {
+      setSending(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        Loading conversations...
-      </div>
+      <LoadingSpinner
+        fullScreen
+        label="Loading conversations..."
+      />
+    );
+  }
+
+  if (conversationError) {
+    return (
+      <ErrorState
+        title="Unable to load conversations"
+        description="We couldn't load your conversations right now. Please try again."
+        onRetry={fetchConversations}
+        retryText="Reload Conversations"
+      />
     );
   }
 
   return (
-  <div className="px-6 h-[calc(100vh-120px)]">
+  <div className="flex h-[calc(100vh-120px)] min-h-0 flex-col px-6">
 
     {/* Page Header */}
     <div className="mb-6">
@@ -143,7 +222,7 @@ function ClientMessages() {
     </div>
 
     {/* Messages Container */}
-    <div className="h-[calc(100%-80px)] overflow-hidden rounded-3xl bg-white shadow-lg">
+    <div className="min-h-0 flex-1 overflow-hidden rounded-3xl bg-white shadow-lg">
 
       {conversations.length === 0 ? (
 
@@ -201,52 +280,71 @@ function ClientMessages() {
       ) : (
 
         /* Existing Chat UI */
-        <div className="flex h-full">
+        <div className="flex h-full min-h-0 flex-col">
+          {selectedConversation ? (
+            <>
+             <div className="shrink-0">
+                <ChatHeader
+                  conversation={selectedConversation}
+                  currentUserId={
+                    loggedInUser?._id ||
+                    loggedInUser?.id ||
+                    loggedInUser?.user?._id
+                  }
+                />
+              </div>
 
-          {/* Conversation List */}
-          <div className="w-80 border-r">
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                {messagesLoading ? (
+                  <div className="flex h-full items-center justify-center">
+                    <LoadingSpinner
+                      label="Loading messages..."
+                    />
+                  </div>
+                ) : messagesError ? (
+                  <div className="flex h-full items-center justify-center p-6">
+                    <ErrorState
+                      title="Unable to load messages"
+                      description="We couldn't load this conversation right now."
+                      onRetry={() =>
+                        fetchMessages(
+                          selectedConversation._id
+                        )
+                      }
+                      retryText="Retry Messages"
+                    />
+                  </div>
+                ) : (
+                  <ChatMessages
+                    messages={messages}
+                    currentUserId={
+                      loggedInUser?._id ||
+                      loggedInUser?.id ||
+                      loggedInUser?.user?._id
+                    }
+                  />
+                )}
+              </div>
 
-            <ConversationList
-              conversations={conversations}
-              selectedConversation={selectedConversation}
-              onSelect={setSelectedConversation}
-              currentUserId={
-                loggedInUser?._id ||
-                loggedInUser?.id ||
-                loggedInUser?.user?._id
-              }
-            />
-
-          </div>
-
-          {/* Chat Area */}
-          <div className="flex flex-1 flex-col">
-
-            <ChatHeader
-              conversation={selectedConversation}
-              currentUserId={
-                loggedInUser?._id ||
-                loggedInUser?.id ||
-                loggedInUser?.user?._id
-              }
-            />
-
-            <ChatMessages
-              messages={messages}
-              currentUserId={
-                loggedInUser?._id ||
-                loggedInUser?.id ||
-                loggedInUser?.user?._id
-              }
-            />
-
-            <MessageInput
-              onSend={handleSendMessage}
-              disabled={!selectedConversation}
-            />
-
-          </div>
-
+              <div className="shrink-0">
+                <MessageInput
+                  onSend={handleSendMessage}
+                  disabled={
+                    !selectedConversation ||
+                    sending ||
+                    messagesLoading
+                  }
+                />
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-1 items-center justify-center p-8">
+              <EmptyState
+                title="No conversations yet"
+                description="Your conversation with your therapist will appear here once messaging is available."
+              />
+            </div>
+          )}
         </div>
 
       )}

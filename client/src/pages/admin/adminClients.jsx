@@ -5,6 +5,13 @@ import TopBar from "../../components/dashboard/TopBar";
 import StatsCard from "../../components/admin/StatsCard";
 import SearchBar from "../../components/admin/SearchBar";
 import ClientCard from "../../components/admin/ClientCard";
+
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import EmptyState from "../../components/ui/EmptyState";
+import ErrorState from "../../components/ui/ErrorState";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
+
+import { showSuccess, showError } from "../../utils/toast";
 import {
   getUsers,
   updateUser,
@@ -13,10 +20,15 @@ import {
 
 function Clients() {
   const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const handleViewClient = (client) => {
@@ -30,6 +42,9 @@ function Clients() {
 
 const fetchClients = async () => {
   try {
+    setLoading(true);
+    setError(false);
+
     const response = await getUsers();
 
     const clientUsers = response.users.filter(
@@ -40,7 +55,6 @@ const fetchClients = async () => {
       id: user._id,
       name: user.name,
       email: user.email,
-
       status: user.status,
 
       therapist:
@@ -49,14 +63,21 @@ const fetchClients = async () => {
         "Not Assigned",
 
       intake: user.intake,
-
       assignment: user.assignment,
     }));
 
     setClients(formatted);
+  } catch (err) {
+    console.error("Failed to fetch clients:", err);
 
-  } catch (error) {
-    console.error(error);
+    setError(true);
+
+    showError(
+      err?.response?.data?.message ||
+        "Unable to load clients."
+    );
+  } finally {
+    setLoading(false);
   }
 };
 
@@ -93,9 +114,8 @@ const filteredClients = useMemo(() => {
       setSaving(true);
 
       await updateUser(editingClient.id, formData);
-
-      fetchClients();
-
+      showSuccess("Client updated successfully!");
+      await fetchClients();
       setShowModal(false);
       setEditingClient(null);
 
@@ -105,34 +125,47 @@ const filteredClients = useMemo(() => {
       });
 
     } catch (err) {
-      alert(
-        err?.response?.data?.message ||
-        "Unable to update client"
-      );
-    } finally {
-      setSaving(false);
-    }
+        console.error("Unable to update client:", err);
+
+        showError(
+          err?.response?.data?.message ||
+            "Unable to update client."
+        );
+      } finally {
+        setSaving(false);
+      }
   };
 
-  const handleDeleteClient = async (client) => {
-    const confirmed = window.confirm(
-      `Delete ${client.name}?`
-    );
+  const handleDeleteClick = (client) => {
+        setClientToDelete(client);
+        setShowDeleteDialog(true);
+      };
 
-    if (!confirmed) return;
+      const handleDeleteClient = async () => {
+        if (!clientToDelete) return;
 
-    try {
-      await deleteUser(client.id);
+        try {
+          setDeleting(true);
 
-      fetchClients();
+          await deleteUser(clientToDelete.id);
 
-    } catch (err) {
-      alert(
-        err?.response?.data?.message ||
-        "Unable to delete client"
-      );
-    }
-  };
+          showSuccess("Client deleted successfully!");
+
+          setShowDeleteDialog(false);
+          setClientToDelete(null);
+
+          await fetchClients();
+        } catch (err) {
+          console.error("Unable to delete client:", err);
+
+          showError(
+            err?.response?.data?.message ||
+              "Unable to delete client."
+          );
+        } finally {
+          setDeleting(false);
+        }
+      };
 
 
   return (
@@ -188,19 +221,25 @@ const filteredClients = useMemo(() => {
 
       {/* Cards */}
 
-      {filteredClients.length === 0 ? (
+      {loading ? (
+        <LoadingSpinner
+          fullScreen
+          label="Loading clients..."
+        />
+      ) : error ? (
+        <ErrorState
+          title="Unable to load clients"
+          description="We couldn't load the client list right now. Please try again."
+          onRetry={fetchClients}
+          retryText="Reload Clients"
+        />
+      ) : filteredClients.length === 0 ? (
 
-        <div className="rounded-2xl border bg-white py-20 text-center shadow-sm">
-
-          <h2 className="text-xl font-semibold text-gray-700">
-            No Clients Found
-          </h2>
-
-          <p className="mt-2 text-gray-500">
-            Try another search keyword.
-          </p>
-
-        </div>
+        <EmptyState
+          icon={Users}
+          title="No clients found"
+          description="Try another search keyword."
+        />
 
       ) : (
 
@@ -213,7 +252,7 @@ const filteredClients = useMemo(() => {
               client={client}
               onView={handleViewClient}
               onEdit={handleEditClick}
-              onDelete={handleDeleteClient}
+              onDelete={handleDeleteClick}
             />
 
           ))}
@@ -453,6 +492,26 @@ const filteredClients = useMemo(() => {
     </div>
   )
 }
+
+  <ConfirmDialog
+    open={showDeleteDialog}
+    title="Delete client?"
+    description={
+      clientToDelete
+        ? `Are you sure you want to delete ${clientToDelete.name}? This action cannot be undone.`
+        : "Are you sure you want to delete this client?"
+    }
+    confirmText={deleting ? "Deleting..." : "Delete Client"}
+    cancelText="Cancel"
+    onConfirm={handleDeleteClient}
+    onCancel={() => {
+      if (!deleting) {
+        setShowDeleteDialog(false);
+        setClientToDelete(null);
+      }
+    }}
+    loading={deleting}
+  />
 
     </div>
   );

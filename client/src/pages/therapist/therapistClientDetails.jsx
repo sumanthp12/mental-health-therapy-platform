@@ -1,7 +1,18 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { User, Brain, NotebookPen, Phone, Calendar } from "lucide-react";
+import {
+  User,
+  Brain,
+  NotebookPen,
+  Phone,
+  Calendar,
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import EmptyState from "../../components/ui/EmptyState";
+import ErrorState from "../../components/ui/ErrorState";
+
+import { showError } from "../../utils/toast";
 
 function TherapistClientDetails() {
 
@@ -9,56 +20,105 @@ function TherapistClientDetails() {
     const { token } = useAuth();
     const [assignment, setAssignment] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
     const navigate = useNavigate();
 
-    const fetchAssignment = async () => {
-            try {
-                const response = await fetch(
-                `http://localhost:8000/api/assignments/${assignmentId}`,
-                {
-                    headers: {
-                    Authorization: `Bearer ${token}`,
-                    },
-                }
-                );
+const fetchAssignment = async () => {
+  try {
+    setLoading(true);
+    setError(false);
 
-                const data = await response.json();
+    const response = await fetch(
+      `http://localhost:8000/api/assignments/${assignmentId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
-                if (response.ok) {
-                setAssignment(data);
-                } else {
-                console.error(data);
-                }
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-            };
+    const data = await response.json();
 
-            useEffect(() => {
-                if (token) {
-                    // eslint-disable-next-line react-hooks/set-state-in-effect
-                    fetchAssignment();
-                }
-                // eslint-disable-next-line react-hooks/exhaustive-deps
-                }, [token]);
+    if (!response.ok) {
+      if (response.status === 404) {
+        setAssignment(null);
+        return;
+      }
 
-                if (loading) {
-                    return (
-                        <div className="p-6">
-                        Loading...
-                        </div>
-                    );
-                    }
+      throw new Error(
+        data?.message ||
+          "Unable to load client details."
+      );
+    }
 
-                    if (!assignment) {
-                        return (
-                            <div className="p-6">
-                            Client not found.
-                            </div>
-                        );
-                        }
+    setAssignment(data);
+  } catch (err) {
+    console.error(
+      "Failed to load client details:",
+      err
+    );
+
+    setError(true);
+
+    showError(
+      err?.message ||
+        "Unable to load client details."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+    if (token) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        fetchAssignment();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [token]);
+
+if (loading) {
+  return (
+    <LoadingSpinner
+      fullScreen
+      label="Loading client details..."
+    />
+  );
+}
+
+if (error) {
+  return (
+    <ErrorState
+      title="Unable to load client details"
+      description="We couldn't load this client's information right now. Please try again."
+      onRetry={fetchAssignment}
+      retryText="Reload Client"
+    />
+  );
+}
+
+if (!assignment) {
+  return (
+    <div className="mx-auto max-w-5xl">
+      <EmptyState
+        icon={User}
+        title="Client not found"
+        description="This client assignment could not be found or may no longer be available."
+      />
+
+      <div className="mt-6 flex justify-center">
+        <button
+          onClick={() =>
+            navigate("/therapist/clients")
+          }
+          className="rounded-lg bg-blue-600 px-5 py-2.5 font-medium text-white transition hover:bg-blue-700"
+        >
+          Back to Clients
+        </button>
+      </div>
+    </div>
+  );
+}
 
   return (
   <div className="space-y-4">

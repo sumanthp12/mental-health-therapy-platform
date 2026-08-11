@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../../services/authService";
 
+import { showError } from "../../utils/toast";
+
 function Register() {
   const navigate = useNavigate();
 
@@ -34,17 +36,30 @@ function Register() {
     const { name, email, password, confirmPassword } = formData;
 
     if (!name || !email || !password || !confirmPassword) {
-      setError("Please fill in all fields.");
-      return;
-    }
+        const message = "Please fill in all fields.";
+
+        setError(message);
+        showError(message);
+
+        return;
+      }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
-      return;
-    }
+        const message =
+          "Password must be at least 6 characters.";
+
+        setError(message);
+        showError(message);
+
+        return;
+      }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      const message = "Passwords do not match.";
+
+      setError(message);
+      showError(message);
+
       return;
     }
 
@@ -60,10 +75,12 @@ function Register() {
         },
       });
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          "Unable to create your account. Please try again."
-      );
+      const message =
+        err?.response?.data?.message ||
+        "Unable to create your account. Please try again.";
+
+      setError(message);
+      showError(message);
     } finally {
       setLoading(false);
     }
@@ -334,9 +351,14 @@ function Register() {
                   disabled={loading}
                   className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-4 py-3.5 font-semibold text-white shadow-lg shadow-blue-200 transition hover:from-blue-700 hover:to-cyan-600 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {loading
-                    ? "Creating account..."
-                    : "Create Account"}
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Creating account...
+                    </span>
+                  ) : (
+                    "Create Account"
+                  )}
                 </button>
               </form>
 

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import {
   ArrowLeft,
   Check,
@@ -12,12 +13,15 @@ import {
   User,
 } from "lucide-react";
 
+import ErrorState from "../../components/ui/ErrorState";
+
+import {
+  showSuccess,
+  showError,
+} from "../../utils/toast";
+
 const API_BASE_URL = "http://localhost:8000/api";
 
-
-// ─────────────────────────────────────────────
-// API helper
-// ─────────────────────────────────────────────
 
 const getToken = () => {
   return localStorage.getItem("token");
@@ -30,7 +34,9 @@ const apiRequest = async (endpoint, options = {}) => {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(token
+        ? { Authorization: `Bearer ${token}` }
+        : {}),
       ...(options.headers || {}),
     },
   });
@@ -38,61 +44,20 @@ const apiRequest = async (endpoint, options = {}) => {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.message || "Something went wrong");
+    throw new Error(
+      data.message || "Something went wrong"
+    );
   }
 
   return data;
 };
 
 
-// ─────────────────────────────────────────────
-// Toast
-// ─────────────────────────────────────────────
-
-function Toast({ toast, onClose }) {
-  if (!toast) return null;
-
-  const isSuccess = toast.type === "success";
-
-  return (
-    <div
-      className={`fixed right-5 top-5 z-50 flex items-center gap-3 rounded-xl border px-4 py-3 shadow-lg ${
-        isSuccess
-          ? "border-green-200 bg-white text-slate-800"
-          : "border-red-200 bg-white text-slate-800"
-      }`}
-    >
-      <div
-        className={`flex h-7 w-7 items-center justify-center rounded-full ${
-          isSuccess ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
-        }`}
-      >
-        {isSuccess ? (
-          <Check size={16} />
-        ) : (
-          <span className="text-sm font-bold">!</span>
-        )}
-      </div>
-
-      <span className="text-sm font-medium">{toast.message}</span>
-
-      <button
-        type="button"
-        onClick={onClose}
-        className="ml-2 text-lg text-slate-400 hover:text-slate-700"
-      >
-        ×
-      </button>
-    </div>
-  );
-}
-
-
-// ─────────────────────────────────────────────
-// Section header
-// ─────────────────────────────────────────────
-
-function SectionHeader({ icon, title, description }) {
+function SectionHeader({
+  icon,
+  title,
+  description,
+}) {
   return (
     <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-4">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
@@ -100,7 +65,9 @@ function SectionHeader({ icon, title, description }) {
       </div>
 
       <div>
-        <h2 className="text-base font-bold text-slate-900">{title}</h2>
+        <h2 className="text-base font-bold text-slate-900">
+          {title}
+        </h2>
 
         <p className="mt-0.5 text-xs text-slate-500">
           {description}
@@ -109,11 +76,6 @@ function SectionHeader({ icon, title, description }) {
     </div>
   );
 }
-
-
-// ─────────────────────────────────────────────
-// Input component
-// ─────────────────────────────────────────────
 
 function FormInput({
   label,
@@ -156,10 +118,6 @@ function FormInput({
 }
 
 
-// ─────────────────────────────────────────────
-// Password input
-// ─────────────────────────────────────────────
-
 function PasswordInput({
   label,
   value,
@@ -181,9 +139,17 @@ function PasswordInput({
           type="button"
           onClick={onToggle}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-blue-600"
-          aria-label={visible ? "Hide password" : "Show password"}
+          aria-label={
+            visible
+              ? "Hide password"
+              : "Show password"
+          }
         >
-          {visible ? <EyeOff size={17} /> : <Eye size={17} />}
+          {visible ? (
+            <EyeOff size={17} />
+          ) : (
+            <Eye size={17} />
+          )}
         </button>
       }
     />
@@ -193,87 +159,77 @@ function PasswordInput({
 function Profile() {
   const navigate = useNavigate();
 
-  // ─────────────────────────────────────────
-  // Profile state
-  // ─────────────────────────────────────────
 
   const [profile, setProfile] = useState(null);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
-  // ─────────────────────────────────────────
-  // Password state
-  // ─────────────────────────────────────────
+  const [currentPassword, setCurrentPassword] =
+    useState("");
 
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [newPassword, setNewPassword] =
+    useState("");
 
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] =
+    useState("");
 
-  // ─────────────────────────────────────────
-  // Loading / submitting
-  // ─────────────────────────────────────────
+  const [
+    showCurrentPassword,
+    setShowCurrentPassword,
+  ] = useState(false);
+
+  const [
+    showNewPassword,
+    setShowNewPassword,
+  ] = useState(false);
+
+  const [
+    showConfirmPassword,
+    setShowConfirmPassword,
+  ] = useState(false);
 
   const [loading, setLoading] = useState(true);
-  const [savingProfile, setSavingProfile] = useState(false);
-  const [changingPassword, setChangingPassword] = useState(false);
 
-  // ─────────────────────────────────────────
-  // Toast
-  // ─────────────────────────────────────────
+  const [profileError, setProfileError] =
+    useState(false);
 
-  const [toast, setToast] = useState(null);
+  const [savingProfile, setSavingProfile] =
+    useState(false);
 
-  const showToast = useCallback((message, type = "success") => {
-    setToast({
-      message,
-      type,
-    });
+  const [changingPassword, setChangingPassword] =
+    useState(false);
 
-    setTimeout(() => {
-      setToast(null);
-    }, 3500);
-  }, []);
-
-  // ─────────────────────────────────────────
-  // Fetch profile
-  // ─────────────────────────────────────────
 
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
+      setProfileError(false);
 
-      const data = await apiRequest("/users/profile");
+      const data = await apiRequest(
+        "/users/profile"
+      );
 
       setProfile(data);
 
       setName(data.name || "");
       setEmail(data.email || "");
     } catch (error) {
-      console.error("Failed to fetch profile:", error);
-
-      showToast(
-        error.message || "Unable to load your profile",
-        "error"
+      console.error(
+        "Failed to fetch profile:",
+        error
       );
+
+      setProfileError(true);
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProfile();
   }, [fetchProfile]);
-
-
-  // ─────────────────────────────────────────
-  // Password strength
-  // ─────────────────────────────────────────
 
   const passwordStrength = useMemo(() => {
     if (!newPassword) {
@@ -289,7 +245,8 @@ function Profile() {
     if (/[A-Z]/.test(newPassword)) score += 1;
     if (/[a-z]/.test(newPassword)) score += 1;
     if (/[0-9]/.test(newPassword)) score += 1;
-    if (/[^A-Za-z0-9]/.test(newPassword)) score += 1;
+    if (/[^A-Za-z0-9]/.test(newPassword))
+      score += 1;
 
     if (score <= 2) {
       return {
@@ -311,34 +268,32 @@ function Profile() {
     };
   }, [newPassword]);
 
-
-  // ─────────────────────────────────────────
-  // Profile update
-  // ─────────────────────────────────────────
-
   const handleProfileUpdate = async (event) => {
     event.preventDefault();
 
     if (!name.trim()) {
-      showToast("Name is required", "error");
+      showError("Name is required");
       return;
     }
 
     if (!email.trim()) {
-      showToast("Email is required", "error");
+      showError("Email is required");
       return;
     }
 
     try {
       setSavingProfile(true);
 
-      const data = await apiRequest("/users/profile", {
-        method: "PUT",
-        body: JSON.stringify({
-          name: name.trim(),
-          email: email.trim(),
-        }),
-      });
+      const data = await apiRequest(
+        "/users/profile",
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            name: name.trim(),
+            email: email.trim(),
+          }),
+        }
+      );
 
       setProfile(data.user);
 
@@ -346,18 +301,22 @@ function Profile() {
       setEmail(data.user?.email || email);
 
       // Keep logged-in user data updated if stored locally.
-      const storedUser = localStorage.getItem("user");
+      const storedUser =
+        localStorage.getItem("user");
 
       if (storedUser) {
         try {
-          const parsedUser = JSON.parse(storedUser);
+          const parsedUser =
+            JSON.parse(storedUser);
 
           localStorage.setItem(
             "user",
             JSON.stringify({
               ...parsedUser,
-              name: data.user?.name || name,
-              email: data.user?.email || email,
+              name:
+                data.user?.name || name,
+              email:
+                data.user?.email || email,
             })
           );
         } catch {
@@ -365,57 +324,59 @@ function Profile() {
         }
       }
 
-      showToast(
-        data.message || "Profile updated successfully",
-        "success"
+      showSuccess(
+        data.message ||
+          "Profile updated successfully"
       );
     } catch (error) {
-      console.error("Profile update failed:", error);
+      console.error(
+        "Profile update failed:",
+        error
+      );
 
-      showToast(
-        error.message || "Unable to update profile",
-        "error"
+      showError(
+        error.message ||
+          "Unable to update profile"
       );
     } finally {
       setSavingProfile(false);
     }
   };
 
-
-  // ─────────────────────────────────────────
-  // Password update
-  // ─────────────────────────────────────────
-
-  const handlePasswordChange = async (event) => {
+  const handlePasswordChange = async (
+    event
+  ) => {
     event.preventDefault();
 
     if (!currentPassword) {
-      showToast("Enter your current password", "error");
+      showError(
+        "Enter your current password"
+      );
       return;
     }
 
     if (!newPassword) {
-      showToast("Enter a new password", "error");
+      showError("Enter a new password");
       return;
     }
 
     if (newPassword.length < 6) {
-      showToast(
-        "New password must be at least 6 characters",
-        "error"
+      showError(
+        "New password must be at least 6 characters"
       );
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      showToast("Passwords do not match", "error");
+      showError(
+        "Passwords do not match"
+      );
       return;
     }
 
     if (currentPassword === newPassword) {
-      showToast(
-        "New password must be different from current password",
-        "error"
+      showError(
+        "New password must be different from current password"
       );
       return;
     }
@@ -423,17 +384,20 @@ function Profile() {
     try {
       setChangingPassword(true);
 
-      const data = await apiRequest("/users/change-password", {
-        method: "PUT",
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-        }),
-      });
+      const data = await apiRequest(
+        "/users/change-password",
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            currentPassword,
+            newPassword,
+          }),
+        }
+      );
 
-      showToast(
-        data.message || "Password changed successfully",
-        "success"
+      showSuccess(
+        data.message ||
+          "Password changed successfully"
       );
 
       setCurrentPassword("");
@@ -444,11 +408,14 @@ function Profile() {
       setShowNewPassword(false);
       setShowConfirmPassword(false);
     } catch (error) {
-      console.error("Password change failed:", error);
+      console.error(
+        "Password change failed:",
+        error
+      );
 
-      showToast(
-        error.message || "Unable to change password",
-        "error"
+      showError(
+        error.message ||
+          "Unable to change password"
       );
     } finally {
       setChangingPassword(false);
@@ -456,19 +423,16 @@ function Profile() {
   };
 
 
-  // ─────────────────────────────────────────
-  // Loading state
-  // ─────────────────────────────────────────
-
   if (loading) {
     return (
       <div className="min-h-full bg-slate-50 px-5 py-5 lg:px-7 lg:py-6">
         <div className="mx-auto max-w-6xl">
-
           <div className="mb-6 flex items-start justify-between">
             <div>
               <div className="mb-2 h-3 w-20 animate-pulse rounded bg-slate-200" />
+
               <div className="mb-2 h-8 w-40 animate-pulse rounded bg-slate-200" />
+
               <div className="h-4 w-72 animate-pulse rounded bg-slate-200" />
             </div>
 
@@ -486,23 +450,28 @@ function Profile() {
   }
 
 
-  // ─────────────────────────────────────────
-  // Main UI
-  // ─────────────────────────────────────────
+  if (profileError) {
+    return (
+      <div className="min-h-full bg-slate-50 px-5 py-5 lg:px-7 lg:py-6">
+        <div className="mx-auto max-w-6xl">
+          <ErrorState
+            title="Unable to load your profile"
+            description="We couldn't load your account information right now. Please try again."
+            onRetry={fetchProfile}
+            retryText="Reload Profile"
+          />
+        </div>
+      </div>
+    );
+  }
+
 
   return (
     <div className="min-h-full bg-slate-50 px-5 py-5 lg:px-7 lg:py-6">
-
-      <Toast
-        toast={toast}
-        onClose={() => setToast(null)}
-      />
-
       <div className="mx-auto max-w-6xl">
 
         {/* Page heading */}
         <div className="mb-6 flex items-start justify-between">
-
           <div>
             <div className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-blue-600">
               <User size={15} />
@@ -526,19 +495,12 @@ function Profile() {
             <ArrowLeft size={17} />
             Back
           </button>
-
         </div>
-
 
         {/* Two-column layout */}
         <div className="grid gap-5 lg:grid-cols-2">
 
-
-          {/* ═══════════════════════════════════
-              PERSONAL INFORMATION
-          ═══════════════════════════════════ */}
-
-          <section className="flex h-[430px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <section className="flex min-h-[430px] flex-col rounded-2xl border border-slate-200 bg-white shadow-sm">
 
             <SectionHeader
               icon={<User size={20} />}
@@ -550,13 +512,14 @@ function Profile() {
               onSubmit={handleProfileUpdate}
               className="flex flex-1 flex-col p-5"
             >
-
               <div className="space-y-5">
 
                 <FormInput
                   label="Full Name"
                   value={name}
-                  onChange={(event) => setName(event.target.value)}
+                  onChange={(event) =>
+                    setName(event.target.value)
+                  }
                   placeholder="Enter your full name"
                   icon={<User size={17} />}
                 />
@@ -564,12 +527,13 @@ function Profile() {
                 <FormInput
                   label="Email Address"
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) =>
+                    setEmail(event.target.value)
+                  }
                   placeholder="Enter your email"
                   type="email"
                   icon={<Mail size={17} />}
                 />
-
 
                 {/* Account type */}
                 <div>
@@ -599,33 +563,29 @@ function Profile() {
 
                   </div>
                 </div>
-
               </div>
-
 
               {/* Save button */}
               <div className="mt-auto pt-5">
-
                 <button
                   type="submit"
                   disabled={savingProfile}
                   className="flex h-11 w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-sm font-bold text-white shadow-md shadow-blue-200 transition hover:from-blue-700 hover:to-cyan-600 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {savingProfile ? "Saving..." : "Save Changes"}
+                  {savingProfile ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Saving...
+                    </span>
+                  ) : (
+                    "Save Changes"
+                  )}
                 </button>
-
               </div>
-
             </form>
-
           </section>
 
-
-          {/* ═══════════════════════════════════
-              SECURITY
-          ═══════════════════════════════════ */}
-
-          <section className="flex h-[430px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <section className="flex min-h-[430px] flex-col rounded-2xl border border-slate-200 bg-white shadow-sm">
 
             <SectionHeader
               icon={<KeyRound size={20} />}
@@ -637,19 +597,22 @@ function Profile() {
               onSubmit={handlePasswordChange}
               className="flex flex-1 flex-col p-5"
             >
-
               <div className="space-y-5">
 
                 <PasswordInput
                   label="Current Password"
                   value={currentPassword}
                   onChange={(event) =>
-                    setCurrentPassword(event.target.value)
+                    setCurrentPassword(
+                      event.target.value
+                    )
                   }
                   placeholder="Enter current password"
                   visible={showCurrentPassword}
                   onToggle={() =>
-                    setShowCurrentPassword((value) => !value)
+                    setShowCurrentPassword(
+                      (value) => !value
+                    )
                   }
                 />
 
@@ -657,12 +620,16 @@ function Profile() {
                   label="New Password"
                   value={newPassword}
                   onChange={(event) =>
-                    setNewPassword(event.target.value)
+                    setNewPassword(
+                      event.target.value
+                    )
                   }
                   placeholder="Enter new password"
                   visible={showNewPassword}
                   onToggle={() =>
-                    setShowNewPassword((value) => !value)
+                    setShowNewPassword(
+                      (value) => !value
+                    )
                   }
                 />
 
@@ -670,15 +637,18 @@ function Profile() {
                   label="Confirm New Password"
                   value={confirmPassword}
                   onChange={(event) =>
-                    setConfirmPassword(event.target.value)
+                    setConfirmPassword(
+                      event.target.value
+                    )
                   }
                   placeholder="Confirm new password"
                   visible={showConfirmPassword}
                   onToggle={() =>
-                    setShowConfirmPassword((value) => !value)
+                    setShowConfirmPassword(
+                      (value) => !value
+                    )
                   }
                 />
-
 
                 {/* Password strength */}
                 {newPassword && (
@@ -702,54 +672,52 @@ function Profile() {
                         }}
                       />
                     </div>
-
                   </div>
                 )}
-
 
                 {/* Password match */}
                 {confirmPassword && (
                   <div
                     className={`flex items-center gap-2 text-xs font-medium ${
-                      newPassword === confirmPassword
+                      newPassword ===
+                      confirmPassword
                         ? "text-green-600"
                         : "text-red-500"
                     }`}
                   >
                     <Check size={14} />
 
-                    {newPassword === confirmPassword
+                    {newPassword ===
+                    confirmPassword
                       ? "Passwords match"
                       : "Passwords do not match"}
                   </div>
                 )}
-
               </div>
-
 
               {/* Change password button */}
               <div className="mt-auto pt-6">
-
                 <button
                   type="submit"
                   disabled={changingPassword}
                   className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-slate-950 text-sm font-bold text-white shadow-md transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <KeyRound size={17} />
-
-                  {changingPassword
-                    ? "Changing Password..."
-                    : "Change Password"}
+                  {changingPassword ? (
+                    <>
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Changing Password...
+                    </>
+                  ) : (
+                    <>
+                      <KeyRound size={17} />
+                      Change Password
+                    </>
+                  )}
                 </button>
-
               </div>
-
             </form>
-
           </section>
-
         </div>
-
 
         {/* Security note */}
         <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-400">
@@ -759,7 +727,6 @@ function Profile() {
             Your account information is protected and only accessible to authorized users.
           </span>
         </div>
-
       </div>
     </div>
   );

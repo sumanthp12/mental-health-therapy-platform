@@ -5,44 +5,73 @@ import SessionCard from "../../components/ui/SessionCard";
 
 import { getSessions } from "../../services/sessionService";
 
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import EmptyState from "../../components/ui/EmptyState";
+import ErrorState from "../../components/ui/ErrorState";
+import { showError } from "../../utils/toast";
+
 function Sessions() {
-  const [sessions, setSessions] =
-    useState([]);
+  const [sessions, setSessions] = useState([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-useEffect(() => {
   const fetchSessions = async () => {
     try {
-      const data =
-        await getSessions();
+      setLoading(true);
+      setError(false);
+
+      const data = await getSessions();
 
       if (Array.isArray(data)) {
         setSessions(data);
-      } else if (data.sessions) {
+      } else if (Array.isArray(data?.sessions)) {
         setSessions(data.sessions);
+      } else {
+        setSessions([]);
       }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(
+        "Failed to load sessions:",
+        err
+      );
+
+      setError(true);
+
+      showError(
+        err?.response?.data?.message ||
+          "Unable to load your sessions."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  fetchSessions();
-}, []);
+useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchSessions();
+  }, []);
 
 
-  
+if (loading) {
+  return (
+    <LoadingSpinner
+      fullScreen
+      label="Loading your sessions..."
+    />
+  );
+}
 
-  if (loading) {
-    return (
-      <div className="text-center py-10">
-        Loading Sessions...
-      </div>
-    );
-  }
+if (error) {
+  return (
+    <ErrorState
+      title="Unable to load your sessions"
+      description="We couldn't load your therapy sessions right now. Please try again."
+      onRetry={fetchSessions}
+      retryText="Reload Sessions"
+    />
+  );
+}
 
   return (
     <div className="space-y-6">
@@ -68,23 +97,10 @@ useEffect(() => {
         </div>
 
       {sessions.length === 0 ? (
-        <div
-          className="
-          bg-white
-          rounded-3xl
-          p-10
-          text-center
-          shadow-sm
-          "
-        >
-          <h3 className="text-xl font-semibold">
-            No Sessions Found
-          </h3>
-
-          <p className="text-slate-500 mt-2">
-            Your therapist will schedule your first therapy session once you have been assigned.
-          </p>
-        </div>
+        <EmptyState
+          title="No sessions found"
+          description="Your therapist will schedule your first therapy session once you have been assigned."
+        />
       ) : (
         <div
           className="

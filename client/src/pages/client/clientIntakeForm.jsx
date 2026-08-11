@@ -9,6 +9,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import { showSuccess, showError } from "../../utils/toast";
+
 const API_URL = "http://localhost:8000/api";
 
 const initialForm = {
@@ -93,10 +95,21 @@ function ClientIntakeForm() {
   };
 
   const handleNext = () => {
-    if (!validateStep()) return;
+    if (!validateStep()) {
+      showError("Please complete the required fields.");
+      return;
+    }
 
-    setStep((prev) => Math.min(prev + 1, totalSteps));
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setSubmitError("");
+
+    setStep((prev) =>
+      Math.min(prev + 1, totalSteps)
+    );
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   };
 
   const handleBack = () => {
@@ -110,7 +123,10 @@ function ClientIntakeForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateStep()) return;
+    if (!validateStep()) {
+      showError("Please complete the required fields.");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -119,9 +135,12 @@ function ClientIntakeForm() {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        setSubmitError(
-          "Your session has expired. Please login again."
-        );
+        const message =
+          "Your session has expired. Please login again.";
+
+        setSubmitError(message);
+        showError(message);
+
         return;
       }
 
@@ -138,7 +157,8 @@ function ClientIntakeForm() {
           symptoms: formData.symptoms.trim(),
           preferredTherapistGender:
             formData.preferredTherapistGender,
-          preferredLanguage: formData.preferredLanguage,
+          preferredLanguage:
+            formData.preferredLanguage,
           emergencyContact:
             formData.emergencyContact.trim(),
           notes: formData.notes.trim(),
@@ -149,16 +169,29 @@ function ClientIntakeForm() {
 
       if (!response.ok) {
         throw new Error(
-          data.message || "Unable to submit intake form."
+          data.message ||
+            "Unable to submit intake form."
         );
       }
 
+      showSuccess(
+        "Your intake form was submitted successfully!"
+      );
+
       setSubmitted(true);
     } catch (error) {
-      setSubmitError(
-        error.message ||
-          "Something went wrong while submitting your intake form."
+      console.error(
+        "Failed to submit intake form:",
+        error
       );
+
+      const message =
+        error.message ||
+        "Something went wrong while submitting your intake form.";
+
+      setSubmitError(message);
+
+      showError(message);
     } finally {
       setLoading(false);
     }

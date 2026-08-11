@@ -16,10 +16,19 @@ import {
   deleteTherapist,
 } from "../../services/therapistService";
 import TopBar from "../../components/dashboard/TopBar";
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import EmptyState from "../../components/ui/EmptyState";
+import ErrorState from "../../components/ui/ErrorState";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
+import { showSuccess, showError } from "../../utils/toast";
 
 function Therapists() {
   const [therapists, setTherapists] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [therapistToDelete, setTherapistToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -36,10 +45,21 @@ function Therapists() {
 
   const fetchTherapists = async () => {
     try {
+      setLoading(true);
+      setError(false);
+
       const data = await getTherapists();
-      setTherapists(data);
-    } catch (error) {
-      console.error(error);
+
+      setTherapists(data || []);
+    } catch (err) {
+      console.error("Failed to fetch therapists:", err);
+
+      setError(true);
+
+      showError(
+        err?.response?.data?.message ||
+          "Unable to load therapists."
+      );
     } finally {
       setLoading(false);
     }
@@ -72,10 +92,12 @@ function Therapists() {
 
         if (editingTherapist) {
           await updateTherapist(editingTherapist._id, payload);
-          alert("Therapist updated successfully!");
+
+          showSuccess("Therapist updated successfully!");
         } else {
           await createTherapist(payload);
-          alert("Therapist created successfully!");
+
+          showSuccess("Therapist created successfully!");
         }
 
         setShowModal(false);
@@ -95,11 +117,11 @@ function Therapists() {
         fetchTherapists();
 
       } catch (err) {
-        console.error(err);
+        console.error("Unable to save therapist:", err);
 
-        alert(
+        showError(
           err?.response?.data?.message ||
-          "Unable to save therapist"
+            "Unable to save therapist."
         );
       } finally {
         setSaving(false);
@@ -123,28 +145,36 @@ const handleEditClick = (therapist) => {
   setShowModal(true);
 };
 
-const handleDeleteTherapist = async (id) => {
-  const confirmDelete = window.confirm(
-    "Are you sure you want to delete this therapist?"
-  );
+const handleDeleteClick = (therapist) => {
+    setTherapistToDelete(therapist);
+    setShowDeleteDialog(true);
+  };
 
-  if (!confirmDelete) return;
+  const handleDeleteTherapist = async () => {
+    if (!therapistToDelete) return;
 
-  try {
-    await deleteTherapist(id);
+    try {
+      setDeleting(true);
 
-    fetchTherapists();
+      await deleteTherapist(therapistToDelete._id);
 
-    alert("Therapist deleted successfully!");
-  } catch (err) {
-    console.error(err);
+      showSuccess("Therapist deleted successfully!");
 
-    alert(
-      err?.response?.data?.message ||
-      "Unable to delete therapist"
-    );
-  }
-};
+      setShowDeleteDialog(false);
+      setTherapistToDelete(null);
+
+      await fetchTherapists();
+    } catch (err) {
+      console.error("Unable to delete therapist:", err);
+
+      showError(
+        err?.response?.data?.message ||
+          "Unable to delete therapist."
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const filteredTherapists = useMemo(() => {
     return therapists.filter((therapist) => {
@@ -313,26 +343,23 @@ const handleDeleteTherapist = async (id) => {
 
       {/* Therapist Cards */}
             {loading ? (
-        <div className="text-center py-20">
-          <p className="text-gray-500 text-lg">
-            Loading therapists...
-          </p>
-        </div>
+              <LoadingSpinner
+                fullScreen
+                label="Loading therapists..."
+              />
+              ) : error ? (
+              <ErrorState
+                title="Unable to load therapists"
+                description="We couldn't load the therapist list right now. Please try again."
+                onRetry={fetchTherapists}
+                retryText="Reload Therapists"
+              />
       ) : filteredTherapists.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
-          <UserRound
-            size={60}
-            className="mx-auto text-gray-300"
-          />
-
-          <h3 className="text-xl font-semibold mt-4">
-            No Therapists Found
-          </h3>
-
-          <p className="text-gray-500 mt-2">
-            Try changing your search or add a new therapist.
-          </p>
-        </div>
+        <EmptyState
+          icon={UserRound}
+          title="No therapists found"
+          description="Try changing your search or add a new therapist."
+        />
       ) : (
         <div className="grid lg:grid-cols-2 gap-6">
           {filteredTherapists.map((therapist) => (
@@ -473,7 +500,7 @@ const handleDeleteTherapist = async (id) => {
                     rounded-xl
                     transition
                   "
-                  onClick={() => handleDeleteTherapist(therapist._id)}
+                  onClick={() => handleDeleteClick(therapist)}
                 >
                   <Trash2 size={16} />
 
@@ -679,9 +706,27 @@ const handleDeleteTherapist = async (id) => {
       </form>
 
     </div>
-
   </div>
 )}
+<ConfirmDialog
+      open={showDeleteDialog}
+      title="Delete therapist?"
+      description={
+        therapistToDelete
+          ? `Are you sure you want to delete ${therapistToDelete.user?.name || "this therapist"}? This action cannot be undone.`
+          : "Are you sure you want to delete this therapist?"
+      }
+      confirmText={deleting ? "Deleting..." : "Delete Therapist"}
+      cancelText="Cancel"
+      onConfirm={handleDeleteTherapist}
+      onCancel={() => {
+        if (!deleting) {
+          setShowDeleteDialog(false);
+          setTherapistToDelete(null);
+        }
+      }}
+      loading={deleting}
+    />
     </div>
   );
 }

@@ -1,24 +1,36 @@
-export default function LoadingSpinner() {
+import { Loader2 } from "lucide-react";
+
+export default function LoadingSpinner({
+  size = "md",
+  label = "Loading...",
+  fullScreen = false,
+}) {
+  const sizes = {
+    sm: "h-4 w-4",
+    md: "h-6 w-6",
+    lg: "h-10 w-10",
+  };
+
+  const containerClass = fullScreen
+    ? "flex min-h-[60vh] items-center justify-center"
+    : "flex items-center justify-center py-10";
+
   return (
     <div
-      className="
-      h-screen
-      flex
-      justify-center
-      items-center
-      "
+      className={containerClass}
+      role="status"
+      aria-live="polite"
+      aria-label={label}
     >
-      <div
-        className="
-        w-12
-        h-12
-        border-4
-        border-sky-500
-        border-t-transparent
-        rounded-full
-        animate-spin
-        "
-      />
+      <div className="flex items-center gap-3 text-slate-500">
+        <Loader2
+          className={`${sizes[size]} animate-spin text-blue-600`}
+        />
+
+        <span className="text-sm font-medium">
+          {label}
+        </span>
+      </div>
     </div>
   );
 }

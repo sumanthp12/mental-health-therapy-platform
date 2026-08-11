@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, CheckCircle2, ShieldCheck } from "lucide-react";
 import { loginUser } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
+import { showError } from "../../utils/toast";
 
 function Login() {
   const navigate = useNavigate();
@@ -20,7 +21,12 @@ function Login() {
     setError("");
 
     if (!email.trim() || !password.trim()) {
-      setError("Please enter your email and password.");
+      const message =
+        "Please enter your email and password.";
+
+      setError(message);
+      showError(message);
+
       return;
     }
 
@@ -39,10 +45,13 @@ function Login() {
         navigate("/client/dashboard");
       }
     } catch (error) {
-      setError(
+      const message =
         error?.response?.data?.message ||
-          "Unable to sign in. Please check your credentials and try again."
-      );
+        "Unable to sign in. Please check your credentials and try again.";
+
+      setError(message);
+
+      showError(message);
     } finally {
       setLoading(false);
     }
@@ -213,7 +222,7 @@ function Login() {
                       type="button"
                       className="text-sm font-medium text-blue-600 transition hover:text-blue-700"
                       onClick={() =>
-                        alert(
+                        showError(
                           "Password reset functionality will be available soon."
                         )
                       }
@@ -256,7 +265,14 @@ function Login() {
                   disabled={loading}
                   className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3.5 text-base font-semibold text-white shadow-lg shadow-blue-200 transition duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-200 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
                 >
-                  {loading ? "Signing you in..." : "Sign In"}
+                  {loading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Signing you in...
+                      </span>
+                    ) : (
+                      "Sign In"
+                    )}
                 </button>
               </form>
 

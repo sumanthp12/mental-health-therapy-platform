@@ -6,26 +6,72 @@ import {
   CheckCircle2,
   Plus,
 } from "lucide-react";
+
 import PaymentRequestModal from "../../components/admin/PaymentRequestModal";
 import TopBar from "../../components/dashboard/TopBar";
 import StatsCard from "../../components/admin/StatsCard";
 import SearchBar from "../../components/admin/SearchBar";
 
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import EmptyState from "../../components/ui/EmptyState";
+import ErrorState from "../../components/ui/ErrorState";
+
+import { showError } from "../../utils/toast";
+
 function AdminPayments() {
   const [sessions, setSessions] = useState([]);
   const [search, setSearch] = useState("");
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
   const [selectedSession, setSelectedSession] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [revenue, setRevenue] =
-  useState(0);
 
-  const fetchSessions = async () => {
+  const [revenue, setRevenue] = useState(0);
+
+const fetchSessions = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const response = await fetch(
+          "http://localhost:8000/api/sessions/admin",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data?.message ||
+              "Unable to load payment sessions."
+          );
+        }
+
+        setSessions(
+          Array.isArray(data) ? data : []
+        );
+      } catch (err) {
+        console.error(
+          "Failed to fetch payment sessions:",
+          err
+        );
+
+        throw err;
+      }
+    };
+
+  const fetchRevenue = async () => {
     try {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-  "http://localhost:8000/api/sessions/admin",
-  {
+        "http://localhost:8000/api/payments/revenue-stats",
+        {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -34,48 +80,57 @@ function AdminPayments() {
 
       const data = await response.json();
 
-      setSessions(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const fetchRevenue = async () => {
-    try {
-      const token =
-        localStorage.getItem("token");
-
-      const response = await fetch(
-        "http://localhost:8000/api/payments/revenue-stats",
-        {
-          headers: {
-            Authorization:
-              `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data =
-        await response.json();
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+            "Unable to load revenue statistics."
+        );
+      }
 
       if (data.success) {
         setRevenue(
           data.stats?.totalRevenue || 0
         );
       }
-    } catch (error) {
+    } catch (err) {
       console.error(
         "Failed to fetch revenue:",
-        error
+        err
       );
+
+      throw err;
     }
   };
 
   useEffect(() => {
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  fetchSessions();
-  fetchRevenue();
-}, []);
+    const loadPayments = async () => {
+      try {
+        setLoading(true);
+        setError(false);
+
+        await Promise.all([
+          fetchSessions(),
+          fetchRevenue(),
+        ]);
+      } catch (err) {
+        console.error(
+          "Failed to load payments page:",
+          err
+        );
+
+        setError(true);
+
+        showError(
+          err?.message ||
+            "Unable to load payment data."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPayments();
+  }, []);
 
   const filteredSessions = useMemo(() => {
     return sessions.filter((session) =>
@@ -84,6 +139,32 @@ function AdminPayments() {
         .includes(search.toLowerCase())
     );
   }, [sessions, search]);
+
+const reloadPayments = async () => {
+  try {
+    setLoading(true);
+    setError(false);
+
+    await Promise.all([
+      fetchSessions(),
+      fetchRevenue(),
+    ]);
+  } catch (err) {
+    console.error(
+      "Failed to reload payments:",
+      err
+    );
+
+    setError(true);
+
+    showError(
+      err?.message ||
+        "Unable to reload payment data."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="space-y-6">
@@ -140,6 +221,33 @@ function AdminPayments() {
         placeholder="Search client..."
       />
 
+{loading ? (
+  <LoadingSpinner
+    fullScreen
+    label="Loading payments..."
+  />
+) : error ? (
+  <ErrorState
+    title="Unable to load payments"
+    description="We couldn't load payment data right now. Please try again."
+    onRetry={reloadPayments}
+    retryText="Reload Payments"
+  />
+) : filteredSessions.length === 0 ? (
+  <EmptyState
+    icon={CreditCard}
+    title={
+      search
+        ? "No payments found"
+        : "No payment records"
+    }
+    description={
+      search
+        ? "Try another client name."
+        : "Payment and session records will appear here."
+    }
+  />
+) : (
       <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
 
         <table className="w-full">
@@ -243,6 +351,7 @@ function AdminPayments() {
         </table>
 
       </div>
+)}
         <PaymentRequestModal
           isOpen={showPaymentModal}
           session={selectedSession}
@@ -251,8 +360,22 @@ function AdminPayments() {
             setSelectedSession(null);
           }}
           onSuccess={async () => {
-            await fetchSessions();
-            await fetchRevenue();
+            try {
+              await Promise.all([
+                fetchSessions(),
+                fetchRevenue(),
+              ]);
+            } catch (err) {
+              console.error(
+                "Failed to refresh payment data:",
+                err
+              );
+
+              showError(
+                err?.message ||
+                  "Payment succeeded, but the page could not refresh."
+              );
+            }
           }}
         />
 

@@ -4,11 +4,18 @@ import { useAuth } from "../../context/AuthContext";
 import { getTherapistDashboard } from "../../services/dashboardService";
 import { useNavigate } from "react-router-dom";
 
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import EmptyState from "../../components/ui/EmptyState";
+import ErrorState from "../../components/ui/ErrorState";
+
+import { showError } from "../../utils/toast";
+
 function Dashboard() {
   const { user } = useAuth();
 
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,24 +25,50 @@ function Dashboard() {
     }
   }, [user]);
 
-  const loadDashboard = async () => {
-    try {
-      const data = await getTherapistDashboard();
-      setDashboard(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+const loadDashboard = async () => {
+  try {
+    setLoading(true);
+    setError(false);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[60vh]">
-        Loading...
-      </div>
+    const data = await getTherapistDashboard();
+
+    setDashboard(data);
+  } catch (err) {
+    console.error(
+      "Failed to load therapist dashboard:",
+      err
     );
+
+    setError(true);
+
+    showError(
+      err?.response?.data?.message ||
+        "Unable to load your dashboard."
+    );
+  } finally {
+    setLoading(false);
   }
+};
+
+if (loading) {
+  return (
+    <LoadingSpinner
+      fullScreen
+      label="Loading your dashboard..."
+    />
+  );
+}
+
+if (error) {
+  return (
+    <ErrorState
+      title="Unable to load your dashboard"
+      description="We couldn't load your dashboard information right now. Please try again."
+      onRetry={loadDashboard}
+      retryText="Reload Dashboard"
+    />
+  );
+}
 
   return (
     <div className="space-y-6">
@@ -76,9 +109,11 @@ function Dashboard() {
             Upcoming Sessions
           </h2>
           {dashboard.upcomingSessions.length === 0 ? (
-            <p className="text-gray-500">
-              No upcoming sessions.
-            </p>
+            <EmptyState
+              icon={Clock}
+              title="No upcoming sessions"
+              description="You don't have any upcoming therapy sessions scheduled at the moment."
+            />
           ) : (
             <div className="space-y-4">
               {dashboard.upcomingSessions.map((session) => (

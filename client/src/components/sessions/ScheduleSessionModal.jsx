@@ -1,5 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
+import {
+  showSuccess,
+  showError,
+} from "../../utils/toast";
 
 function ScheduleSessionModal({
   open,
@@ -15,7 +19,8 @@ function ScheduleSessionModal({
 
   const handleSchedule = async () => {
     if (!sessionDate || !sessionTime) {
-      return alert("Please select date and time.");
+      showError("Please select date and time.");
+      return;
     }
 
     try {
@@ -37,7 +42,7 @@ function ScheduleSessionModal({
         }
       );
 
-      alert("Session scheduled successfully!");
+      showSuccess("Session scheduled successfully!");
 
       setSessionDate("");
       setSessionTime("");
@@ -46,7 +51,7 @@ function ScheduleSessionModal({
       onClose();
     } catch (err) {
       console.error(err);
-      alert("Failed to schedule session.");
+      showError("Failed to schedule session.");
     } finally {
       setLoading(false);
     }
@@ -111,9 +116,16 @@ function ScheduleSessionModal({
           <button
             onClick={handleSchedule}
             disabled={loading}
-            className="px-5 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+            className="px-5 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? "Scheduling..." : "Schedule Session"}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                Scheduling...
+              </span>
+            ) : (
+              "Schedule Session"
+            )}
           </button>
 
         </div>

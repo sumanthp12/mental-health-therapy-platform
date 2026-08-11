@@ -11,31 +11,65 @@ import {
   completeMeeting,
 } from "../../services/sessionService";
 
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import EmptyState from "../../components/ui/EmptyState";
+import ErrorState from "../../components/ui/ErrorState";
+
+import { showError, showSuccess } from "../../utils/toast";
+
 function Sessions() {
   const { token } = useAuth();
 
   const [sessions, setSessions] = useState([]);
 
-  const fetchSessions = async () => {
-    try {
-      const response = await fetch(
-        "http://localhost:8000/api/sessions/therapist",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-      const data = await response.json();
+  const [processingSessionId, setProcessingSessionId] =
+    useState(null);
 
-      if (response.ok) {
-        setSessions(data);
+const fetchSessions = async () => {
+  try {
+    setLoading(true);
+    setError(false);
+
+    const response = await fetch(
+      "http://localhost:8000/api/sessions/therapist",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
-    } catch (error) {
-      console.error(error);
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data?.message ||
+          "Unable to load your sessions."
+      );
     }
-  };
+
+    setSessions(
+      Array.isArray(data) ? data : []
+    );
+  } catch (err) {
+    console.error(
+      "Failed to load therapist sessions:",
+      err
+    );
+
+    setError(true);
+
+    showError(
+      err?.message ||
+        "Unable to load your sessions."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   const formatDate = (date) => {
     if (!date) return "Date Not Available";
@@ -55,32 +89,108 @@ function Sessions() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  const handleApprove = async (sessionId) => {
-    try {
-      await approveSession(sessionId);
-      await fetchSessions();
-    } catch (error) {
-      console.error(error);
-    }
-  };
+const handleApprove = async (sessionId) => {
+  if (processingSessionId) return;
 
-  const handleStartMeeting = async (sessionId) => {
-    try {
-      await startMeeting(sessionId);
-      await fetchSessions();
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  try {
+    setProcessingSessionId(sessionId);
 
-  const handleCompleteMeeting = async (sessionId) => {
-    try {
-      await completeMeeting(sessionId);
-      await fetchSessions();
-    } catch (error) {
-      console.error(error);
-    }
-  };
+    await approveSession(sessionId);
+
+    showSuccess("Session approved successfully.");
+
+    await fetchSessions();
+  } catch (error) {
+    console.error(
+      "Failed to approve session:",
+      error
+    );
+
+    showError(
+      error?.response?.data?.message ||
+        error?.message ||
+        "Unable to approve the session."
+    );
+  } finally {
+    setProcessingSessionId(null);
+  }
+};
+
+const handleStartMeeting = async (sessionId) => {
+  if (processingSessionId) return;
+
+  try {
+    setProcessingSessionId(sessionId);
+
+    await startMeeting(sessionId);
+
+    showSuccess("Meeting started successfully.");
+
+    await fetchSessions();
+  } catch (error) {
+    console.error(
+      "Failed to start meeting:",
+      error
+    );
+
+    showError(
+      error?.response?.data?.message ||
+        error?.message ||
+        "Unable to start the meeting."
+    );
+  } finally {
+    setProcessingSessionId(null);
+  }
+};
+
+const handleCompleteMeeting = async (sessionId) => {
+  if (processingSessionId) return;
+
+  try {
+    setProcessingSessionId(sessionId);
+
+    await completeMeeting(sessionId);
+
+    showSuccess(
+      "Session completed successfully."
+    );
+
+    await fetchSessions();
+  } catch (error) {
+    console.error(
+      "Failed to complete meeting:",
+      error
+    );
+
+    showError(
+      error?.response?.data?.message ||
+        error?.message ||
+        "Unable to complete the session."
+    );
+  } finally {
+    setProcessingSessionId(null);
+  }
+};
+
+if (loading) {
+  return (
+    <LoadingSpinner
+      fullScreen
+      label="Loading sessions..."
+    />
+  );
+}
+
+if (error) {
+  return (
+    <ErrorState
+      title="Unable to load sessions"
+      description="We couldn't load your assigned sessions right now. Please try again."
+      onRetry={fetchSessions}
+      retryText="Reload Sessions"
+    />
+  );
+}
 
   return (
     <div className="space-y-6">
@@ -90,34 +200,12 @@ function Sessions() {
       />
 
       {sessions.length === 0 ? (
-        /* Empty State */
-        <div className="flex min-h-[420px] items-center justify-center rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex max-w-md flex-col items-center px-6 py-12 text-center">
-            {/* Icon */}
-            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-100">
-              <CalendarDays
-                size={38}
-                className="text-blue-600"
-              />
-            </div>
-
-            {/* Title */}
-            <h2 className="text-2xl font-bold text-slate-900">
-              No sessions yet
-            </h2>
-
-            {/* Description */}
-            <p className="mt-3 text-base leading-7 text-slate-500">
-              You don't have any therapy sessions assigned
-              to you yet.
-            </p>
-
-            <p className="mt-1 text-sm text-slate-400">
-              Sessions will appear here once they are scheduled.
-            </p>
-          </div>
-        </div>
-      ) : (
+          <EmptyState
+            icon={CalendarDays}
+            title="No sessions yet"
+            description="You don't have any therapy sessions assigned to you yet. Sessions will appear here once they are scheduled."
+          />
+        ) : (
         /* Sessions */
         <div
           className="

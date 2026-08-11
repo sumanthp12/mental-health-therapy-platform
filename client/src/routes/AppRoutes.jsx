@@ -3,6 +3,8 @@ import ProtectedRoute from "./ProtectedRoute";
 
 // Public Pages
 import LandingPage from "../pages/public/LandingPage";
+import NotFound from "../pages/public/NotFound";
+import Unauthorized from "../pages/public/Unauthorized";
 
 // Auth Pages
 import Login from "../pages/auth/Login";
@@ -49,6 +51,7 @@ function AppRoutes() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        
 
         <Route path="/profile" element={ <ProtectedRoute roles={["admin", "client", "therapist"]} > <Profile /> </ProtectedRoute> } />
 
@@ -90,6 +93,16 @@ function AppRoutes() {
               <VideoCall />
             </ProtectedRoute>
           }
+        />
+
+        <Route
+          path="/unauthorized"
+          element={<Unauthorized />}
+        />
+
+        <Route
+          path="*"
+          element={<NotFound />}
         />
 
       </Routes>

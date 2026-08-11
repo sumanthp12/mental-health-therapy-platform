@@ -4,132 +4,185 @@ import { Eye, CheckCircle2, X } from "lucide-react";
 import TopBar from "../../components/dashboard/TopBar";
 import { getUsers } from "../../services/userService";
 
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import EmptyState from "../../components/ui/EmptyState";
+import ErrorState from "../../components/ui/ErrorState";
+
+import { showSuccess, showError } from "../../utils/toast";
+
 function IntakeForms() {
   const [intakeForms, setIntakeForms] = useState([]);
   const [therapists, setTherapists] = useState([]);
   const [selectedTherapists, setSelectedTherapists] = useState({});
-
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [assigningFormId, setAssigningFormId] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedForm, setSelectedForm] = useState(null);
 
   const fetchIntakeForms = async () => {
-  try {
-    const token = localStorage.getItem("token");
+      try {
+        const token = localStorage.getItem("token");
 
-    const [intakeResponse, usersResponse] = await Promise.all([
-      fetch("http://localhost:8000/api/intake", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }),
-      getUsers(),
-    ]);
+        const [intakeResponse, usersResponse] = await Promise.all([
+          fetch("http://localhost:8000/api/intake", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+          getUsers(),
+        ]);
 
-    const intakeData = await intakeResponse.json();
+        if (!intakeResponse.ok) {
+          const errorData = await intakeResponse.json().catch(() => ({}));
 
-    const usersData = usersResponse?.users || usersResponse || [];
+          throw new Error(
+            errorData?.message || "Unable to load intake forms."
+          );
+        }
 
-    const enrichedIntakeForms = intakeData.map((form) => {
-      const clientId =
-        typeof form.client === "object"
-          ? form.client?._id
-          : form.client;
+        const intakeData = await intakeResponse.json();
 
-      const clientUser = usersData.find(
-        (user) => user._id === clientId
-      );
+        const usersData = usersResponse?.users || usersResponse || [];
 
-      return {
-        ...form,
+        const enrichedIntakeForms = intakeData.map((form) => {
+          const clientId =
+            typeof form.client === "object"
+              ? form.client?._id
+              : form.client;
 
-        client:
-          form.client?.name
-            ? form.client
-            : clientUser || form.client,
+          const clientUser = usersData.find(
+            (user) => user._id === clientId
+          );
 
-        assignment:
-          form.assignment || clientUser?.assignment || null,
+          return {
+            ...form,
 
-        therapist:
-          form.therapist || clientUser?.therapist || null,
+            client:
+              form.client?.name
+                ? form.client
+                : clientUser || form.client,
+
+            assignment:
+              form.assignment ||
+              clientUser?.assignment ||
+              null,
+
+            therapist:
+              form.therapist ||
+              clientUser?.therapist ||
+              null,
+          };
+        });
+
+        setIntakeForms(enrichedIntakeForms);
+      } catch (err) {
+          console.error("Failed to fetch intake forms:", err);
+
+          setError(true);
+
+          showError(
+            err?.message ||
+              "Unable to load intake forms."
+          );
+
+          throw err;
+        }
       };
-    });
-
-    setIntakeForms(enrichedIntakeForms);
-  } catch (error) {
-    console.error("Failed to fetch intake forms:", error);
-  }
-};
 
   const fetchTherapists = async () => {
-    try {
-      const token = localStorage.getItem("token");
+      try {
+        const token = localStorage.getItem("token");
 
-      const response = await fetch(
-        "http://localhost:8000/api/therapists",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const response = await fetch(
+          "http://localhost:8000/api/therapists",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+
+          throw new Error(
+            errorData?.message ||
+              "Unable to load therapists."
+          );
         }
-      );
 
-      const therapistData = await response.json();
+        const therapistData = await response.json();
 
-      setTherapists(therapistData);
+        setTherapists(therapistData);
 
-      return therapistData;
-    } catch (error) {
-      console.error(error);
-    }
-  };
+        return therapistData;
+      } catch (err) {
+        console.error("Failed to fetch therapists:", err);
 
-  const assignTherapist = async (form) => {
-    try {
-      const therapistId = selectedTherapists[form._id];
+        showError(
+          err?.message ||
+            "Unable to load therapists."
+        );
 
-      if (!therapistId) {
-        alert("Please select a therapist");
-        return;
+        throw err;
       }
+    };
 
-      const token = localStorage.getItem("token");
+const assignTherapist = async (form) => {
+  try {
+    const therapistId = selectedTherapists[form._id];
 
-      const response = await fetch(
-        "http://localhost:8000/api/assignments",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            intakeFormId: form._id,
-            therapistId,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      console.log(data);
-
-      if (!response.ok) {
-        alert(data?.message || "Unable to assign therapist");
-        return;
-      }
-
-      alert("Therapist assigned successfully!");
-
-      setSelectedTherapists({});
-
-      await fetchIntakeForms();
-      await fetchTherapists();
-    } catch (error) {
-      console.error(error);
-      alert("Unable to assign therapist");
+    if (!therapistId) {
+      showError("Please select a therapist.");
+      return;
     }
-  };
+
+    setAssigningFormId(form._id);
+
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(
+      "http://localhost:8000/api/assignments",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          intakeFormId: form._id,
+          therapistId,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data?.message ||
+          "Unable to assign therapist."
+      );
+    }
+
+    showSuccess("Therapist assigned successfully!");
+
+    setSelectedTherapists({});
+
+    await fetchIntakeForms();
+    await fetchTherapists();
+  } catch (err) {
+    console.error("Unable to assign therapist:", err);
+
+    showError(
+      err?.message ||
+        "Unable to assign therapist."
+    );
+  } finally {
+    setAssigningFormId(null);
+  }
+};
 
   const handleViewDetails = (form) => {
     setSelectedForm(form);
@@ -138,8 +191,20 @@ function IntakeForms() {
 
   useEffect(() => {
     const loadData = async () => {
-      await fetchTherapists();
-      await fetchIntakeForms();
+      try {
+        setLoading(true);
+        setError(false);
+
+        await Promise.all([
+          fetchTherapists(),
+          fetchIntakeForms(),
+        ]);
+      } catch (err) {
+        console.error("Failed to load intake page:", err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadData();
@@ -166,20 +231,38 @@ function IntakeForms() {
 
         </div>
 
-        {intakeForms.length === 0 ? (
+        {loading ? (
+          <LoadingSpinner
+            fullScreen
+            label="Loading intake forms..."
+          />
+        ) : error ? (
+          <ErrorState
+            title="Unable to load intake forms"
+            description="We couldn't load the intake forms right now. Please try again."
+            onRetry={async () => {
+              try {
+                setLoading(true);
+                setError(false);
 
-          <div className="rounded-xl border border-dashed py-16 text-center">
-
-            <h3 className="text-lg font-semibold text-gray-700">
-              No Intake Forms Found
-            </h3>
-
-            <p className="mt-2 text-sm text-gray-500">
-              Submitted intake forms will appear here.
-            </p>
-
-          </div>
-
+                await Promise.all([
+                  fetchTherapists(),
+                  fetchIntakeForms(),
+                ]);
+              // eslint-disable-next-line no-unused-vars
+              } catch (err) {
+                setError(true);
+              } finally {
+                setLoading(false);
+              }
+            }}
+            retryText="Reload Intake Forms"
+          />
+        ) : intakeForms.length === 0 ? (
+          <EmptyState
+            title="No intake forms found"
+            description="Submitted intake forms will appear here."
+          />
         ) : (
 
           <div className="overflow-x-auto">
@@ -329,9 +412,12 @@ function IntakeForms() {
 
                           <button
                             onClick={() => assignTherapist(form)}
-                            className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
+                            disabled={assigningFormId === form._id}
+                            className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                           >
-                            Assign
+                            {assigningFormId === form._id
+                              ? "Assigning..."
+                              : "Assign"}
                           </button>
 
                         )}

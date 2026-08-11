@@ -8,23 +8,42 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getClientDashboard } from "../../services/dashboardService";
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import EmptyState from "../../components/ui/EmptyState";
+import ErrorState from "../../components/ui/ErrorState";
+import { showError } from "../../utils/toast";
 
 function ClientDashboard() {
   const navigate = useNavigate();
 
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const loadDashboard = async () => {
-    try {
-      const data = await getClientDashboard();
-      setDashboard(data);
-    } catch (error) {
-      console.error("Failed to load dashboard:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      try {
+        setLoading(true);
+        setError(false);
+
+        const data = await getClientDashboard();
+
+        setDashboard(data);
+      } catch (err) {
+        console.error(
+          "Failed to load client dashboard:",
+          err
+        );
+
+        setError(true);
+
+        showError(
+          err?.response?.data?.message ||
+            "Unable to load your dashboard."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -33,9 +52,21 @@ function ClientDashboard() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center text-lg font-semibold">
-        Loading Dashboard...
-      </div>
+      <LoadingSpinner
+        fullScreen
+        label="Loading your dashboard..."
+      />
+    );
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        title="Unable to load your dashboard"
+        description="We couldn't load your dashboard right now. Please try again."
+        onRetry={loadDashboard}
+        retryText="Reload Dashboard"
+      />
     );
   }
 
@@ -169,20 +200,11 @@ function ClientDashboard() {
               </button>
             </>
           ) : (
-            <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center">
-              <Calendar
-                className="mx-auto mb-4 text-slate-400"
-                size={42}
+            <EmptyState
+                icon={Calendar}
+                title="No upcoming sessions"
+                description="Your therapist will schedule a session once you are assigned."
               />
-
-              <p className="font-medium text-slate-600">
-                No upcoming sessions scheduled.
-              </p>
-
-              <p className="mt-1 text-sm text-slate-400">
-                Your therapist will schedule a session once you are assigned.
-              </p>
-            </div>
           )}
         </div>
 

@@ -5,10 +5,18 @@ import AIMessageList from "../../components/ai/AIMessageList";
 import AIMessageInput from "../../components/ai/AIMessageInput";
 import { chatWithAI, getAIHistory } from "../../services/aiService";
 
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import ErrorState from "../../components/ui/ErrorState";
+import { showError } from "../../utils/toast";
+
 const ClientAISupport = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+
   const [loading, setLoading] = useState(false);
+
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyError, setHistoryError] = useState(false);
 
   const bottomRef = useRef(null);
 
@@ -25,13 +33,30 @@ const ClientAISupport = () => {
 
   const loadHistory = async () => {
     try {
+      setHistoryLoading(true);
+      setHistoryError(false);
+
       const history = await getAIHistory();
 
       if (history && history.length > 0) {
         setMessages(history);
+      } else {
+        setMessages([]);
       }
     } catch (error) {
-      console.error("Failed to load AI history:", error);
+      console.error(
+        "Failed to load AI history:",
+        error
+      );
+
+      setHistoryError(true);
+
+      showError(
+        error?.response?.data?.message ||
+          "Unable to load your AI conversation."
+      );
+    } finally {
+      setHistoryLoading(false);
     }
   };
 
@@ -70,7 +95,14 @@ const ClientAISupport = () => {
 
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
-      console.error(error);
+      console.error("Failed to contact AI assistant:",
+          error
+        );
+
+        showError(
+          error?.response?.data?.message ||
+            "Unable to contact the AI assistant. Please try again."
+        );
 
       setMessages((prev) => [
         ...prev,
@@ -91,7 +123,7 @@ const ClientAISupport = () => {
   };
 
   return (
-  <div className="flex min-h-[calc(100vh-120px)] flex-col gap-4 pb-6">
+  <div className="flex h-[calc(100vh-120px)] min-h-0 flex-col gap-4 pb-6">
 
     {/* AI Header + Suggested Prompts */}
     {messages.length === 0 && (
@@ -105,13 +137,28 @@ const ClientAISupport = () => {
     <div className="flex min-h-[360px] flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
 
       {/* Messages */}
-      <div className="flex min-h-[260px] flex-1 items-center justify-center rounded-2xl bg-gray-50 p-8 text-left">
-
-        <AIMessageList
-          messages={messages}
-          loading={loading}
-        />
-
+      <div className="min-h-0 flex-1 overflow-y-auto rounded-2xl bg-gray-50 p-8 text-left">
+        {historyLoading ? (
+          <div className="flex h-full items-center justify-center">
+            <LoadingSpinner
+              label="Loading AI conversation..."
+            />
+          </div>
+        ) : historyError ? (
+          <div className="flex h-full items-center justify-center">
+            <ErrorState
+              title="Unable to load AI conversation"
+              description="We couldn't load your previous AI conversation right now."
+              onRetry={loadHistory}
+              retryText="Reload Conversation"
+            />
+          </div>
+        ) : (
+          <AIMessageList
+            messages={messages}
+            loading={loading}
+          />
+        )}
       </div>
 
       {/* Input */}

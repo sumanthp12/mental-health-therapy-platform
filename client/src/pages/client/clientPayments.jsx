@@ -15,83 +15,149 @@ import {
   Receipt,
 } from "lucide-react";
 
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import EmptyState from "../../components/ui/EmptyState";
+import ErrorState from "../../components/ui/ErrorState";
+
+import {
+  showSuccess,
+  showError,
+} from "../../utils/toast";
+
 function ClientPayments() {
   const [payments, setPayments] = useState([]);
+
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  const fetchPayments = async () => {
-    try {
-      const res = await getPaymentHistory();
+  const [payingPaymentId, setPayingPaymentId] = useState(null);
 
-      setPayments(res.payments || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchPayments = async () => {
+  try {
+    setLoading(true);
+    setError(false);
 
-  useEffect(() => {
+    const res = await getPaymentHistory();
+
+    setPayments(res?.payments || []);
+  } catch (err) {
+    console.error(
+      "Failed to load payment history:",
+      err
+    );
+
+    setError(true);
+
+    showError(
+      err?.response?.data?.message ||
+        "Unable to load your payment history."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPayments();
   }, []);
 
-  const handlePayment = async (payment) => {
-    try {
-      const response = await createOrder({
-        sessionId: payment.session,
-        amount: payment.amount,
-      });
+const handlePayment = async (payment) => {
+  if (payingPaymentId) {
+    return;
+  }
 
-      const { order } = response;
+  try {
+    setPayingPaymentId(payment._id);
 
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency,
-        name: "Mindful Connect",
-        description: payment.description,
-        order_id: order.id,
+    const response = await createOrder({
+      sessionId: payment.session,
+      amount: payment.amount,
+    });
 
-        handler: async function (razorpayResponse) {
-          try {
-            await verifyPayment({
-              razorpay_order_id:
-                razorpayResponse.razorpay_order_id,
+    const { order } = response;
 
-              razorpay_payment_id:
-                razorpayResponse.razorpay_payment_id,
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+      amount: order.amount,
+      currency: order.currency,
+      name: "Mindful Connect",
+      description: payment.description,
+      order_id: order.id,
 
-              razorpay_signature:
-                razorpayResponse.razorpay_signature,
-            });
+      handler: async function (razorpayResponse) {
+        try {
+          await verifyPayment({
+            razorpay_order_id:
+              razorpayResponse.razorpay_order_id,
 
-            alert("Payment Successful");
+            razorpay_payment_id:
+              razorpayResponse.razorpay_payment_id,
 
-            fetchPayments();
-          } catch (error) {
-            console.error(error);
-            alert("Payment verification failed.");
-          }
-        },
+            razorpay_signature:
+              razorpayResponse.razorpay_signature,
+          });
 
-        prefill: {
-          name: "Client",
-        },
+          showSuccess(
+            "Payment completed successfully."
+          );
 
-        theme: {
-          color: "#2563eb",
-        },
-      };
+          await fetchPayments();
+        } catch (error) {
+          console.error(
+            "Payment verification failed:",
+            error
+          );
 
-      const razorpay = new window.Razorpay(options);
+          showError(
+            error?.response?.data?.message ||
+              "Payment verification failed. Please try again."
+          );
+        } finally {
+          setPayingPaymentId(null);
+        }
+      },
 
-      razorpay.open();
-    } catch (error) {
-      console.error(error);
-      alert("Unable to create payment order.");
-    }
-  };
+      prefill: {
+        name: "Client",
+      },
+
+      theme: {
+        color: "#2563eb",
+      },
+    };
+
+    const razorpay = new window.Razorpay(options);
+
+    razorpay.open();
+
+    razorpay.on("payment.failed", (response) => {
+      console.error(
+        "Razorpay payment failed:",
+        response
+      );
+
+      showError(
+        response?.error?.description ||
+          "Payment failed. Please try again."
+      );
+
+      setPayingPaymentId(null);
+    });
+  } catch (error) {
+    console.error(
+      "Unable to create payment order:",
+      error
+    );
+
+    showError(
+      error?.response?.data?.message ||
+        "Unable to create payment order. Please try again."
+    );
+
+    setPayingPaymentId(null);
+  }
+};
 
   const pending = payments.filter(
     (p) =>
@@ -253,52 +319,24 @@ function ClientPayments() {
 
           {/* Loading */}
           {loading ? (
-
             <div className="rounded-2xl border border-gray-200 bg-white p-10 shadow-sm">
-
-              <div className="flex flex-col items-center justify-center text-center">
-
-                <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
-
-                <p className="font-medium text-gray-700">
-                  Loading payments...
-                </p>
-
-                <p className="mt-1 text-sm text-gray-400">
-                  Please wait while we fetch your payment history.
-                </p>
-
-              </div>
-
+              <LoadingSpinner
+                label="Loading payments..."
+              />
             </div>
-
+          ) : error ? (
+            <ErrorState
+              title="Unable to load payments"
+              description="We couldn't load your payment history right now. Please try again."
+              onRetry={fetchPayments}
+              retryText="Reload Payments"
+            />
           ) : payments.length === 0 ? (
-
-            /* Empty State */
-            <div className="rounded-2xl border border-gray-200 bg-white p-12 shadow-sm">
-
-              <div className="mx-auto flex max-w-md flex-col items-center text-center">
-
-                <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50">
-                  <Receipt
-                    size={30}
-                    className="text-blue-600"
-                  />
-                </div>
-
-                <h3 className="text-xl font-bold text-gray-900">
-                  No Payment Requests
-                </h3>
-
-                <p className="mt-2 text-sm leading-6 text-gray-500">
-                  You don't have any payment requests at the moment.
-                  Payment requests will appear here when your therapist
-                  schedules a paid session.
-                </p>
-
-              </div>
-
-            </div>
+            <EmptyState
+              icon={Receipt}
+              title="No payment requests"
+              description="You don't have any payment requests at the moment. Payment requests will appear here when your therapist schedules a paid session."
+            />
 
           ) : (
 
@@ -411,10 +449,20 @@ function ClientPayments() {
                       <div className="mt-6 flex justify-end border-t border-gray-100 pt-5">
                         <button
                           onClick={() => handlePayment(payment)}
-                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                          disabled={payingPaymentId === payment._id}
+                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          <IndianRupee size={17} />
-                          Pay Now
+                          {payingPaymentId === payment._id ? (
+                            <>
+                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <IndianRupee size={17} />
+                              Pay Now
+                            </>
+                          )}
                         </button>
                       </div>
                     )}
