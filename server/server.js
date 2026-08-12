@@ -3,6 +3,10 @@ require("dotenv").config();
 const connectDB = require("./src/config/database");
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const errorHandler = require("./src/middleware/errorMiddleware");
+
 const adminRoutes = require("./src/routes/adminRoutes");
 const therapistRoutes = require("./src/routes/therapistRoutes");
 const intakeRoutes = require("./src/routes/intakeRoutes");
@@ -20,21 +24,53 @@ const userRoutes = require("./src/routes/userRoutes");
 const dashboardRoutes = require("./src/routes/dashboardRoutes");
 
 
+
 const app = express();
 const server = http.createServer(app);
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: "Too many requests. Please try again later.",
+  },
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message:
+      "Too many authentication attempts. Please try again later.",
+  },
+});
+
+const frontendUrl =
+  process.env.FRONTEND_URL || "http://localhost:5173";
 
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: frontendUrl,
   },
 });
 
 initSocket(io);
 
-app.use(cors());
+app.use(helmet());
+app.use(
+  cors({
+    origin: frontendUrl,
+  })
+);
 app.use(express.json());
 
-app.use("/api/users", userRoutes);
+app.use("/api", apiLimiter);
+
+app.use("/api/users", authLimiter, userRoutes);
+
 app.use("/api/admin", adminRoutes);
 app.use("/api/therapists", therapistRoutes);
 app.use("/api/intake", intakeRoutes);
@@ -50,6 +86,8 @@ app.use("/api/dashboard", dashboardRoutes);
 app.get("/", (req, res) => {
   res.send("Mental Health Therapy API Running 🚀");
 });
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 8000;
 connectDB();
