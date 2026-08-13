@@ -34,7 +34,7 @@ const fetchSessions = async () => {
     setError(false);
 
     const response = await fetch(
-      "http://localhost:8000/api/sessions/therapist",
+      `${import.meta.env.VITE_API_URL}/sessions/therapist`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

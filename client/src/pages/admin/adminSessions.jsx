@@ -29,7 +29,7 @@ function AdminSessions() {
         localStorage.getItem("token");
 
       const response = await fetch(
-        "http://localhost:8000/api/sessions/admin",
+        `${import.meta.env.VITE_API_URL}/admin/sessions`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

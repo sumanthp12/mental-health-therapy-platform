@@ -35,7 +35,7 @@ const fetchSessions = async () => {
         const token = localStorage.getItem("token");
 
         const response = await fetch(
-          "http://localhost:8000/api/sessions/admin",
+          `${import.meta.env.VITE_API_URL}/sessions/admin`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -70,7 +70,7 @@ const fetchSessions = async () => {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        "http://localhost:8000/api/payments/revenue-stats",
+        `${import.meta.env.VITE_API_URL}/payments/revenue-stats`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

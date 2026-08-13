@@ -29,7 +29,7 @@ const fetchAssignment = async () => {
     setError(false);
 
     const response = await fetch(
-      `http://localhost:8000/api/assignments/${assignmentId}`,
+      `${import.meta.env.VITE_API_URL}/assignments/${assignmentId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

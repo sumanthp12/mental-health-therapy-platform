@@ -29,7 +29,7 @@ function ScheduleSessionModal({
       const token = localStorage.getItem("token");
 
       await axios.post(
-        "http://localhost:8000/api/sessions/schedule",
+        `${import.meta.env.VITE_API_URL}/sessions/schedule`,
         {
           clientId: client._id,
           sessionDate,

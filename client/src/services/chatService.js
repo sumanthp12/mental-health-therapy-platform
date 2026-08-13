@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:8000/api/chat",
+  baseURL: `${import.meta.env.VITE_API_URL}/chat`,
 });
 
 API.interceptors.request.use((config) => {
@@ -15,10 +15,8 @@ API.interceptors.request.use((config) => {
 });
 
 export const findOrCreateConversation = async (participantId) => {
-  // Get all existing conversations
   const conversations = await getConversations();
 
-  // Look for a conversation with this participant
   const existing = conversations.find((conversation) =>
     conversation.participants?.some(
       (participant) => participant._id === participantId
@@ -28,8 +26,6 @@ export const findOrCreateConversation = async (participantId) => {
   if (existing) {
     return existing;
   }
-
-  // Otherwise create one
   return await createConversation(participantId);
 };
 

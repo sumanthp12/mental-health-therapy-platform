@@ -21,7 +21,6 @@ const AIMessageInput = ({
   };
 
   const handleKeyDown = (e) => {
-    // Enter = Send
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
 

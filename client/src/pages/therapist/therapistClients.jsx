@@ -33,7 +33,7 @@ const fetchAssignedClients = async () => {
     setError(false);
 
     const response = await fetch(
-      `http://localhost:8000/api/assignments/therapist/${user.id}`,
+      `${import.meta.env.VITE_API_URL}/assignments/therapist/${user.id}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
