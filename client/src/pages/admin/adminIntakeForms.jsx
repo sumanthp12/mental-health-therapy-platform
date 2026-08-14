@@ -25,7 +25,7 @@ function IntakeForms() {
         const token = localStorage.getItem("token");
 
         const [intakeResponse, usersResponse] = await Promise.all([
-          fetch("http://localhost:8000/api/intake", {
+          fetch(`${import.meta.env.VITE_API_URL}/intake`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -95,7 +95,7 @@ function IntakeForms() {
         const token = localStorage.getItem("token");
 
         const response = await fetch(
-          "http://localhost:8000/api/therapists",
+          `${import.meta.env.VITE_API_URL}/therapists`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -143,7 +143,7 @@ const assignTherapist = async (form) => {
     const token = localStorage.getItem("token");
 
     const response = await fetch(
-      "http://localhost:8000/api/assignments",
+      `${import.meta.env.VITE_API_URL}/assignments`,
       {
         method: "POST",
         headers: {
