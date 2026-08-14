@@ -13,18 +13,25 @@ function VideoCall() {
 
   const leaveSession = async () => {
         try {
-            if (sessionId) {
+          if (sessionId) {
             await completeMeeting(sessionId);
-            }
+          }
 
+          if (user?.role === "client") {
+            navigate("/client/sessions");
+          } else {
             navigate("/therapist/sessions");
-
+          }
         } catch (error) {
-            console.error(error);
+          console.error(error);
 
+          if (user?.role === "client") {
+            navigate("/client/sessions");
+          } else {
             navigate("/therapist/sessions");
+          }
         }
-        };
+      };
 
   return (
     <div className="h-screen w-full bg-gray-900">
